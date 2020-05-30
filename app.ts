@@ -33,7 +33,15 @@ export class App {
 
         try {
           await pipeline.dispatch();
-        } catch (err) {}
+        } catch (err) {
+          console.log(err);
+        }
+
+        try {
+          await httpRequest.respond(response.makeResponse());
+        } finally {
+          response.close();
+        }
       }
     }
 
@@ -73,8 +81,12 @@ export class App {
 
       this.stack.push({
         path,
-        handle: async (req: Request, res: Response, next: Next) => {
-          middleware.dispatch(req, res, next);
+        handle: async (
+          req: Request,
+          res: Response,
+          next: Next,
+        ): Promise<any> => {
+          return middleware.dispatch(req, res, next);
         },
       });
     }, this);

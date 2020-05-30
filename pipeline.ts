@@ -25,22 +25,22 @@ export class Pipeline {
     let iterator = 0;
 
     if (iterator < this.stack?.length) {
-      const next = async (err?: any) => {
+      const next = async (err?: any): Promise<any> => {
         iterator++;
 
         if (!this.finished && iterator < this.stack.length) {
-          await this.handle_request(iterator, next);
+          return this.handle_request(iterator, next);
         } else {
           this.finished = true;
-          await this.response.sendStatus(404);
+          this.response.sendStatus(404);
         }
       };
 
-      await this.handle_request(iterator, next);
+      return this.handle_request(iterator, next);
     }
   }
 
-  private async handle_request(iterator: number, next: Next): Promise<void> {
+  private async handle_request(iterator: number, next: Next): Promise<any> {
     const middleware = this.stack[iterator];
 
     if (
@@ -51,27 +51,28 @@ export class Pipeline {
 
       if (params) {
         this.request.params = params;
+        this.request.extra.originalPath = middleware.path;
 
         try {
-          await middleware.handle(this.request, this.response, next);
+          return middleware.handle(this.request, this.response, next);
         } catch (e) {
-          await next(e);
-          return;
+          return next(e);
         }
       }
     } else if (
       !this.is_route(middleware) &&
       (middleware.path === "/" || this.request.url.startsWith(middleware.path))
     ) {
+      this.request.extra.originalPath = middleware.path;
+
       try {
-        await middleware.handle(this.request, this.response, next);
+        return middleware.handle(this.request, this.response, next);
       } catch (e) {
-        await next(e);
-        return;
+        return next(e);
       }
     }
 
-    await next();
+    return next();
   }
 }
 

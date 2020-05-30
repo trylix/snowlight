@@ -14,38 +14,37 @@ export class Response {
   body?: string | Uint8Array | Deno.Reader;
   resources: Deno.Closer[] = [];
 
-  constructor(private request: ServerRequest) {
-  }
+  constructor(private request?: ServerRequest) {}
 
   status(statusCode: number): this {
     this.statusCode = statusCode;
     return this;
   }
 
-  async sendStatus(statusCode: number): Promise<void> {
+  sendStatus(statusCode: number): this {
     this.statusCode = statusCode;
 
-    await this.respond();
+    return this;
   }
 
-  async send(body: any): Promise<void> {
+  send(body: any): this {
     this.body = body;
 
-    await this.respond();
+    return this;
   }
 
-  async html(content: any): Promise<void> {
+  html(content: any): this {
     this.headers.append("Content-Type", "text/html; charset=utf-8");
     this.body = content;
 
-    await this.respond();
+    return this;
   }
 
-  async json(json: any): Promise<void> {
+  json(json: any): this {
     this.headers.append("Content-Type", "application/json");
     this.body = JSON.stringify(json);
 
-    await this.respond();
+    return this;
   }
 
   async file(
@@ -70,33 +69,30 @@ export class Response {
 
     if (transform) {
       const bytes = await readFile(filePath);
+
       let str = new TextDecoder().decode(bytes);
       str = transform(str);
+
       this.body = new TextEncoder().encode(str);
     } else {
       const file = await open(filePath);
+
       this.resources.push(file);
       this.body = file;
     }
-
-    await this.respond();
   }
 
-  close() {
-    for (let resource of this.resources) {
+  async close() {
+    for (const resource of this.resources) {
       resource.close();
     }
+
+    this.request = undefined;
+    this.body = undefined;
+    this.resources = [];
   }
 
-  private async respond() {
-    try {
-      await this.request.respond(this.makeResponse());
-    } finally {
-      this.close();
-    }
-  }
-
-  private makeResponse(): HttpResponse {
+  makeResponse(): HttpResponse {
     let { statusCode = 200, headers, body = new Uint8Array(0) } = this;
     if (typeof body === "string") {
       body = new TextEncoder().encode(body);
@@ -109,6 +105,4 @@ export class Response {
   }
 }
 
-export {
-  Response as default,
-};
+export { Response as default };

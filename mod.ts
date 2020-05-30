@@ -12,6 +12,7 @@ function Router() {
 export * from "./pipeline.ts";
 export * from "./request.ts";
 export * from "./response.ts";
+export * from "./body_parser.ts";
 
 export {
   App as default,

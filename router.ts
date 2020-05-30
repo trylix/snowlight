@@ -54,13 +54,12 @@ export class Router {
           element.path !== "/"
       ).length > 0)
     ) {
-      res.sendStatus(404);
-      return;
+      return res.sendStatus(404);
     }
 
     const pipeline = new Pipeline(this.stack, req, res);
 
-    await pipeline.dispatch();
+    return pipeline.dispatch();
   }
 
   get(path: string, ...params: Function[]): this {
