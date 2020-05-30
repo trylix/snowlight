@@ -1,7 +1,15 @@
-import App from "./app.ts";
+import app from "./app.ts";
+import router from "./router.ts";
 
-export default function createServer() {
-  const app = new App();
-
+function App() {
   return app;
+}
+
+function Router() {
+  return router;
+}
+
+export {
+  App as default,
+  Router,
 }
