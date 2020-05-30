@@ -56,4 +56,4 @@ export class Request {
 
 export {
   Request as default,
-}
+};

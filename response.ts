@@ -1,6 +1,9 @@
 const { stat, open, readFile } = Deno;
 
-import { Response as HttpResponse, ServerRequest } from "https://deno.land/std/http/server.ts";
+import {
+  Response as HttpResponse,
+  ServerRequest,
+} from "https://deno.land/std/http/server.ts";
 import { extname as pathExtname } from "https://deno.land/std/path/mod.ts";
 import { lookup } from "https://deno.land/x/media_types/mod.ts";
 
@@ -12,7 +15,6 @@ export class Response {
   resources: Deno.Closer[] = [];
 
   constructor(private request: ServerRequest) {
-
   }
 
   status(statusCode: number): this {
@@ -55,17 +57,17 @@ export class Response {
       this.statusCode = 304;
       return;
     }
-    
+
     const extname: string = pathExtname(filePath);
     const contentType: any = lookup(extname.slice(1)) || "";
     const fileInfo = await stat(filePath);
-    
+
     if (!fileInfo.isFile) {
       return;
     }
-    
+
     this.headers.append("Content-Type", contentType);
-    
+
     if (transform) {
       const bytes = await readFile(filePath);
       let str = new TextDecoder().decode(bytes);
@@ -93,7 +95,7 @@ export class Response {
       this.close();
     }
   }
-  
+
   private makeResponse(): HttpResponse {
     let { statusCode = 200, headers, body = new Uint8Array(0) } = this;
     if (typeof body === "string") {
@@ -109,4 +111,4 @@ export class Response {
 
 export {
   Response as default,
-}
+};

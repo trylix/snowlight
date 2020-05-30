@@ -16,4 +16,4 @@ export * from "./response.ts";
 export {
   App as default,
   Router,
-}
+};

@@ -74,7 +74,7 @@ export class App {
       this.stack.push({
         path,
         handle: async (req: Request, res: Response, next: Next) => {
-          await middleware.dispatch(req, res, next);
+          middleware.dispatch(req, res, next);
         },
       });
     }, this);
@@ -83,6 +83,4 @@ export class App {
   }
 }
 
-export {
-  App as default,
-}
+export { App as default };
