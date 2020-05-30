@@ -1,6 +1,9 @@
 import { flatten } from "./modules/array_flatten.ts";
 
-import Pipeline from "./pipeline.ts";
+import Pipeline, { Next } from "./pipeline.ts";
+
+import Request from "./request.ts";
+import Response from "./response.ts";
 
 export interface Route {
   path: string,
@@ -9,11 +12,11 @@ export interface Route {
   handle: Function,
 }
 
-class Router {
+export class Router {
   private stack: Route[] = [];
 
-  async dispatch() {
-    const pipeline = new Pipeline(this.stack);
+  async dispatch(req: Request, res: Response, next: Next) {
+    const pipeline = new Pipeline(this.stack, req, res);
       
     await pipeline.dispatch();
   }
@@ -56,4 +59,6 @@ class Router {
   }
 }
 
-export default new Router();
+export {
+  Router as default,
+}

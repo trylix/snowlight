@@ -1,36 +1,39 @@
-import {
-  serve,
-  HTTPOptions,
-} from "https://deno.land/std/http/server.ts";
+import { serve, HTTPOptions } from "https://deno.land/std/http/server.ts";
 
 import { flatten } from "./modules/array_flatten.ts";
 
-import Pipeline from "./pipeline.ts";
+import Pipeline, { Next } from "./pipeline.ts";
+
+import Request from "./request.ts";
+import Response from "./response.ts";
 
 export interface Middleware {
-  path: string,
-  handle: Function,
+  path: string;
+  handle: Function;
 }
 
-class App {
+export class App {
   private stack: Middleware[];
 
   constructor() {
     this.stack = [];
   }
 
-  listen(config: (string | HTTPOptions), callback?: Function) {
+  listen(config: string | HTTPOptions, callback?: Function) {
     const s = serve(config);
-    
-    const pipeline = new Pipeline(this.stack);
+
+    let self = this;
 
     async function handle() {
-      for await (const request of s) {
-        await pipeline.dispatch();
+      for await (const httpRequest of s) {
+        const request = new Request(httpRequest);
+        const response = new Response(httpRequest);
 
-        request.respond({
-          body: "Hello world",
-        });
+        const pipeline = new Pipeline(self.stack, request, response);
+
+        try {
+          await pipeline.dispatch();
+        } catch (err) {}
       }
     }
 
@@ -70,8 +73,8 @@ class App {
 
       this.stack.push({
         path,
-        handle: async () => {
-          await middleware.dispatch();
+        handle: async (req: Request, res: Response, next: Next) => {
+          await middleware.dispatch(req, res, next);
         },
       });
     }, this);
@@ -80,4 +83,6 @@ class App {
   }
 }
 
-export default new App();
+export {
+  App as default,
+}

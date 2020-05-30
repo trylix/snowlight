@@ -2,12 +2,16 @@ import app from "./app.ts";
 import router from "./router.ts";
 
 function App() {
-  return app;
+  return new app();
 }
 
 function Router() {
-  return router;
+  return new router();
 }
+
+export * from "./pipeline.ts";
+export * from "./request.ts";
+export * from "./response.ts";
 
 export {
   App as default,
