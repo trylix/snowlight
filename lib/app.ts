@@ -9,6 +9,8 @@ import Request from "./request.ts";
 import Response from "./response.ts";
 import Pipeline from "./pipeline.ts";
 
+import { parser_params } from "./utils.ts";
+
 export class App {
   private router?: Router;
 
@@ -104,6 +106,7 @@ export class App {
       if (!middleware?.dispatch) {
         return this.getRouter().middlewares().push({
           path,
+          params: parser_params(path),
           handle: middleware,
         });
       }
@@ -112,6 +115,7 @@ export class App {
         .middlewares()
         .push({
           path,
+          params: parser_params(path),
           handle: async (
             req: Request,
             res: Response,

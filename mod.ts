@@ -11,7 +11,7 @@ export default function createApplication() {
 }
 
 export function Router() {
-  return app.getRouter();
+  return new Route();
 }
 
 export * from "./lib/pipeline.ts";

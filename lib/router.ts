@@ -14,7 +14,7 @@ export class Router {
   constructor(private extra?: { [name: string]: any }) {}
 
   private route(method: string, ...params: (string | Function)[]) {
-    let path = "/";
+    let path = this.extra?.path ? this.extra.path : "/";
     let offset = 0;
 
     if (!Array.isArray(params)) {
@@ -30,7 +30,7 @@ export class Router {
     }
 
     if (typeof params[0] === "string") {
-      path = this.extra?.path ? this.extra.path + params[0] : params[0];
+      path = params[0];
       offset = 2;
     } else {
       path = this.extra?.path;
@@ -67,13 +67,16 @@ export class Router {
     return this.stack;
   }
 
-  group(path: string, middlewares: Function | Function[], callback: Function) {
+  group(path: string, middlewares: (Function | Function[]), callback: Function) {
     const router = new Router({
       path,
     });
+    
+    router.use(path, middlewares);
 
     this.stack.push({
       path,
+      params: parser_params(path),
       handle: async (
         req: Request,
         res: Response,
@@ -106,8 +109,8 @@ export class Router {
     return this.route("DELETE", ...params);
   }
 
-  use(...params: (string | Function)[]): this {
-    let path = "/";
+  use(...params: any[]): this {
+    let path = this.extra?.path ? this.extra.path : "/";
     let offset = 0;
 
     if (

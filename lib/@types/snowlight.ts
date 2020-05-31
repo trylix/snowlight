@@ -17,6 +17,7 @@ export type Method =
 
 export interface Middleware {
   path: string;
+  params: (path: string) => any;
   handle: Function;
 }
 

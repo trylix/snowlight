@@ -1,4 +1,4 @@
-import { Params } from "./request.ts";
+import { Params } from "./@types/snowlight.ts";
 
 export type Match = (pattern: string) => (path: string) => Params;
 
@@ -8,13 +8,14 @@ export const parser_params: Match = (pt: string) => {
   return (p) => {
     const path = p.split("/");
 
+
     if (pattern.length !== path.length) {
       return null;
     }
 
     const params: any = {};
 
-    for (let i = 0; i < pattern.length; i++) {
+    for (let i = 1; i < pattern.length; i++) {
       const p = pattern[i];
 
       if (p[0] === ":") {
