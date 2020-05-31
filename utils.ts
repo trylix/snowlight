@@ -29,3 +29,7 @@ export const parser_params: Match = (pt: string) => {
     return params;
   };
 };
+
+export function is_html(value: string): boolean {
+  return /^\s*<(?:!DOCTYPE|html|body)/i.test(value);
+}

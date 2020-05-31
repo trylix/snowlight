@@ -19,7 +19,11 @@ export class Request {
     this.path = url.pathname;
     this.search = url.search;
 
-    this.data = raw.body;
+    const hasBody =
+      raw.headers.has("Content-Length") &&
+      raw.headers.get("Content-Length") !== "0";
+
+    this.data = hasBody ? raw.body : new Uint8Array();
 
     const query: Query = {};
 
@@ -56,14 +60,65 @@ export class Request {
     this.data = value;
   }
 
-  get hasBody(): boolean {
+  header(key?: string, def?: string[]): string[] {
+    if (!key) {
+      const result: string[] = [];
+      for (const [h] of this.headers) {
+        result.push(h);
+      }
+
+      return result;
+    }
+
+    const header = this.headers.get(key);
+    if (!header) {
+      return def ? def : [""];
+    }
+
+    return [header];
+  }
+
+  hasHeader(key: string): boolean {
+    return this.headers.has(key);
+  }
+
+  acceptsHtml(): boolean {
+    return this.accept("text/html");
+  }
+
+  acceptsJson(): boolean {
     return (
-      this.raw.headers.get("transfer-encoding") !== null ||
-      !!parseInt(this.raw.headers.get("content-length") ?? "")
+      this.accept("application/json") || this.accept("application/ld+json")
+    );
+  }
+
+  acceptsAnyContentType(): boolean {
+    return this.accept("*/*", true) || this.accept("*", true);
+  }
+
+  accept(type: string, strict: boolean = false): boolean {
+    const [header] = this.header("Accept");
+    if (strict) {
+      return header.includes(type);
+    }
+    return (
+      header.includes(type) || header.includes("*/*") || header.includes("*")
+    );
+  }
+
+  isForm(): boolean {
+    const [header] = this.header("Content-Type");
+    return header.includes("application/x-www-form-urlencoded");
+  }
+
+  isJson(): boolean {
+    const [header] = this.header("Content-Type");
+
+    return (
+      header.includes("application/json") ||
+      header.includes("application/ld+json")
     );
   }
 }
 
-export {
-  Request as default,
-};
+export { Request as default };

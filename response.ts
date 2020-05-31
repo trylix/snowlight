@@ -7,6 +7,8 @@ import {
 import { extname as pathExtname } from "https://deno.land/std/path/mod.ts";
 import { lookup } from "https://deno.land/x/media_types/mod.ts";
 
+import { is_html } from "./utils.ts";
+
 export class Response {
   private statusCode = 200;
 
@@ -16,40 +18,60 @@ export class Response {
 
   constructor(private request?: ServerRequest) {}
 
+  header(key: string, value: string, replace: boolean = true): this {
+    const header = this.headers.get(key);
+    if (!header || (header && replace)) {
+      this.headers.set(key, value);
+    }
+
+    return this;
+  }
+
+  getHeaders(): Headers {
+    return this.headers;
+  }
+
   status(statusCode: number): this {
     this.statusCode = statusCode;
     return this;
   }
 
+  send(body?: any, statusCode?: number): this {
+    this.statusCode = statusCode ?? this.statusCode;
+
+    if (body) {
+      switch (typeof body) {
+        case "string": {
+          this.body = new TextEncoder().encode(body);
+          if (is_html(body)) {
+            this.headers.append("Content-Type", "text/html; charset=utf-8");
+          } else {
+            this.headers.append("Content-Type", "text/plain; charset=utf-8");
+          }
+          break;
+        }
+        default: {
+          this.body = new TextEncoder().encode(JSON.stringify(body));
+          this.headers.append("Content-Type", "application/json");
+          break;
+        }
+      }
+    }
+
+    return this;
+  }
+
   sendStatus(statusCode: number): this {
-    this.statusCode = statusCode;
-
-    return this;
+    return this.send(undefined, statusCode);
   }
 
-  send(body: any): this {
-    this.body = body;
-
-    return this;
-  }
-
-  html(content: any): this {
-    this.headers.append("Content-Type", "text/html; charset=utf-8");
-    this.body = content;
-
-    return this;
-  }
-
-  json(json: any): this {
-    this.headers.append("Content-Type", "application/json");
-    this.body = JSON.stringify(json);
-
-    return this;
+  json(body: any): this {
+    return this.send(body);
   }
 
   async file(
     filePath: string,
-    transform?: (src: string) => string,
+    transform?: (src: string) => string
   ): Promise<void> {
     const notModified = false;
     if (notModified) {
@@ -94,12 +116,6 @@ export class Response {
 
   makeResponse(): HttpResponse {
     let { statusCode = 200, headers, body = new Uint8Array(0) } = this;
-    if (typeof body === "string") {
-      body = new TextEncoder().encode(body);
-      if (!headers.has("Content-Type")) {
-        headers.append("Content-Type", "text/plain; charset=utf-8");
-      }
-    }
 
     return { status: statusCode, headers, body };
   }
