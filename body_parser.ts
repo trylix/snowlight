@@ -26,17 +26,38 @@ export const static_content = (dir: string) => {
 
 export const json = () => {
   return async (req: Request, res: Response, next: Next): Promise<any> => {
-    if (req.headers.get("Content-Type") === "application/json") {
+    if (req.isJson()) {
       try {
         const rawBody = await Deno.readAll(req.body);
 
         const bodyText = new TextDecoder().decode(rawBody);
 
         req.body = JSON.parse(bodyText);
-      } catch (e) {
-        return res.status(400).json({
-          message: e,
-        });
+      } catch (err) {
+        return next(err)
+      }
+    }
+
+    return next();
+  };
+};
+
+export const urlencoded = () => {
+  return async (req: Request, res: Response, next: Next): Promise<any> => {
+    if (req.isForm()) {
+      try {
+        const form = new URLSearchParams(
+          new TextDecoder().decode(req.body)
+        );
+
+        const data: any = {};
+        for (const [name, value] of form.entries()) {
+          data[name] = value;
+        }
+
+        req.body = data;
+      } catch (err) {
+        return next(err);
       }
     }
 
