@@ -27,3 +27,21 @@ export interface Route {
   params: (path: string) => any;
   handle: Function;
 }
+
+export interface StaticOptions {
+  index?: string,
+  fallthrough?: boolean,
+  redirect?: boolean,
+  lastModified?: boolean,
+  immutable?: boolean,
+  maxAge?: number,
+}
+
+export const defaultOptions: StaticOptions = {
+  index: "index.html",
+  fallthrough: true,
+  redirect: true,
+  lastModified: true,
+  immutable: false,
+  maxAge: 0,
+}
