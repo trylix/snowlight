@@ -2,32 +2,62 @@ import { flatten } from "./modules/array_flatten.ts";
 
 import Pipeline, { Next } from "./pipeline.ts";
 
-import Request, { Params } from "./request.ts";
+import Request, { Method } from "./request.ts";
 import Response from "./response.ts";
 
 import { parser_params } from "./utils.ts";
 
+export interface Middleware {
+  path: string;
+  handle: Function;
+}
+
 export interface Route {
   path: string;
-  method: string | undefined;
+  methods: Method[];
   params: (path: string) => any;
   handle: Function;
 }
 
 export class Router {
-  private stack: Route[] = [];
+  private stack: (Middleware | Route)[] = [];
 
-  private route(method: string, path: string, ...params: Function[]) {
-    const handles = flatten(Array.prototype.slice.call(arguments, 2));
+  constructor(private extra?: {[name: string]: any }) {}
+
+  private route(method: string, ...params: (string | Function)[]) {
+    let path = "/";
+    let offset = 0;
+
+    if (!Array.isArray(params)) {
+      throw new Error(
+        `Router.${method.toLowerCase}() requires a route path and a middleware function`
+      );
+    }
+
+    if (typeof params[0] !== "string" && !this.extra?.path) {
+      throw new Error(
+        `Router.${method.toLowerCase}() requires a route path`
+      );
+    }
+
+    if (typeof params[0] === "string") {
+      path = this.extra?.path ? this.extra.path + params[0] : params[0];
+      offset = 2;
+    } else {
+      path = this.extra?.path;
+      offset = 1;
+    }
+
+    const handles = flatten(Array.prototype.slice.call(arguments, offset));
 
     handles.forEach(function (this: Router, handle) {
       if (typeof handle !== "function") {
-        throw new Error("Router.use() requires a middleware function");
+        throw new Error(`Router.${method.toLowerCase()}() requires a middleware function`);
       }
 
       this.stack.push({
         path,
-        method,
+        methods: [method as Method],
         params: parser_params(path),
         handle,
       });
@@ -37,49 +67,52 @@ export class Router {
   }
 
   async dispatch(req: Request, res: Response, next: Next) {
-    let method = req.method;
-
-    if (method === "HEAD") {
-      method = "GET";
-    }
-
-    const path = req.path;
-    const url = req.url;
-
-    if (
-      !(this.stack.filter((element) =>
-        element.method !== undefined && element.method === method &&
-          element.params(url) ||
-        element.method === undefined && path.startsWith(element.path) &&
-          element.path !== "/"
-      ).length > 0)
-    ) {
-      return res.sendStatus(404);
-    }
-
     const pipeline = new Pipeline(this.stack, req, res);
 
     return pipeline.dispatch();
   }
 
-  get(path: string, ...params: Function[]): this {
-    return this.route("GET", path, ...params);
+  middlewares() {
+    return this.stack;
   }
 
-  post(path: string, ...params: Function[]): this {
-    return this.route("POST", path, ...params);
+  group(path: string, middlewares: Function | Function[], callback: Function) {
+    const router = new Router({
+      path,
+    });
+
+    this.stack.push({
+      path,
+      handle: async (
+        req: Request,
+        res: Response,
+        next: Next,
+      ): Promise<any> => {
+        return router.dispatch(req, res, next);
+      },
+    });
+
+    callback(router);
   }
 
-  put(path: string, ...params: Function[]): this {
-    return this.route("PUT", path, ...params);
+  get(...params: (string | Function)[]): this {
+    return this.route("GET", ...params);
   }
 
-  patch(path: string, ...params: Function[]): this {
-    return this.route("PATCH", path, ...params);
+  post(...params: (string | Function)[]): this {
+    return this.route("POST", ...params);
   }
 
-  delete(path: string, ...params: Function[]): this {
-    return this.route("DELETE", path, ...params);
+  put(...params: (string | Function)[]): this {
+    return this.route("PUT", ...params);
+  }
+
+  patch(...params: (string | Function)[]): this {
+    return this.route("PATCH", ...params);
+  }
+
+  delete(...params: (string | Function)[]): this {
+    return this.route("DELETE", ...params);
   }
 
   use(...params: (string | Function)[]): this {
@@ -110,7 +143,7 @@ export class Router {
 
       this.stack.push({
         path,
-        method: undefined,
+        methods: [],
         params: parser_params(path),
         handle: middleware,
       });
@@ -120,6 +153,4 @@ export class Router {
   }
 }
 
-export {
-  Router as default,
-};
+export { Router as default };

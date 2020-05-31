@@ -4,6 +4,16 @@ export type Params = { [key: string]: string };
 
 export type Query = { [key: string]: string | string[] };
 
+export type Method = "GET"
+  | "HEAD"
+  | "POST"
+  | "PUT"
+  | "DELETE"
+  | "CONNECT"
+  | "OPTIONS"
+  | "TRACE"
+  | "PATCH";
+  
 export class Request {
   path: string;
   search: string;
@@ -40,8 +50,8 @@ export class Request {
     this.query = query;
   }
 
-  get method(): string {
-    return this.raw.method;
+  get method(): Method {
+    return this.raw.method as Method;
   }
 
   get url(): string {

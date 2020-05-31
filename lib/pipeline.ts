@@ -1,5 +1,4 @@
-import { Middleware } from "./app.ts";
-import { Route } from "./router.ts";
+import { Middleware, Route } from "./router.ts";
 
 import Request from "./request.ts";
 import Response from "./response.ts";
@@ -18,7 +17,7 @@ export class Pipeline {
   }
 
   private is_route(object: Middleware | Route): object is Route {
-    return (object as Route).method !== undefined;
+    return (object as Route).methods !== undefined;
   }
 
   async dispatch(err?: Error) {
@@ -29,7 +28,9 @@ export class Pipeline {
         iterator++;
 
         if (!this.finished && iterator < this.stack.length) {
-          return err ? this.handle_error(iterator, err, next) : this.handle_request(iterator, next);
+          return err
+            ? this.handle_error(iterator, err, next)
+            : this.handle_request(iterator, next);
         } else {
           this.finished = true;
 
@@ -38,14 +39,16 @@ export class Pipeline {
               name: err.name,
               message: err.message,
               stack: err.stack,
-            })
+            });
           } else {
             return this.response.sendStatus(404);
           }
         }
       };
 
-      return err ? this.handle_error(iterator, err, next) : this.handle_request(iterator, next);
+      return err
+        ? this.handle_error(iterator, err, next)
+        : this.handle_request(iterator, next);
     }
   }
 
@@ -58,8 +61,7 @@ export class Pipeline {
 
     if (
       this.is_route(middleware) &&
-      middleware.method !== undefined &&
-      middleware.method === this.request.method
+      middleware.methods.includes(this.request.method)
     ) {
       const params = middleware.params(this.request.url);
 

@@ -4,19 +4,20 @@ import { flatten } from "./modules/array_flatten.ts";
 
 import Pipeline, { Next } from "./pipeline.ts";
 
+import Router, { Middleware } from "./router.ts";
+
 import Request from "./request.ts";
 import Response from "./response.ts";
 
-export interface Middleware {
-  path: string;
-  handle: Function;
-}
-
 export class App {
-  private stack: Middleware[];
+  private router?: Router;
 
-  constructor() {
-    this.stack = [];
+  private getRouter() {
+    if (!this.router) {
+      this.router = new Router();
+    }
+
+    return this.router;
   }
 
   listen(config: string | HTTPOptions, callback?: Function) {
@@ -29,7 +30,11 @@ export class App {
         const request = new Request(httpRequest);
         const response = new Response(httpRequest);
 
-        const pipeline = new Pipeline(self.stack, request, response);
+        const pipeline = new Pipeline(
+          self.getRouter().middlewares(),
+          request,
+          response
+        );
 
         try {
           await pipeline.dispatch();
@@ -48,6 +53,30 @@ export class App {
     handle();
 
     callback?.();
+  }
+
+  group(path: string, middlewares: Function | Function[], callback: Function) {
+    this.getRouter().group(path, middlewares, callback);
+  }
+
+  get(...params: (string | Function)[]): Router {
+    return this.getRouter().get(...params);
+  }
+
+  post(...params: (string | Function)[]): Router {
+    return this.getRouter().post(...params);
+  }
+
+  put(path: string, ...params: Function[]): Router {
+    return this.getRouter().put(...params);
+  }
+
+  patch(path: string, ...params: Function[]): Router {
+    return this.getRouter().patch(...params);
+  }
+
+  delete(path: string, ...params: Function[]): Router {
+    return this.getRouter().post(...params);
   }
 
   use(...params: (string | Function | Object)[]) {
@@ -73,22 +102,24 @@ export class App {
 
     middlewares.forEach(function (this: App, middleware: any) {
       if (!middleware?.dispatch) {
-        return this.stack.push({
+        return this.getRouter().middlewares().push({
           path,
           handle: middleware,
         });
       }
 
-      this.stack.push({
-        path,
-        handle: async (
-          req: Request,
-          res: Response,
-          next: Next,
-        ): Promise<any> => {
-          return middleware.dispatch(req, res, next);
-        },
-      });
+      this.getRouter()
+        .middlewares()
+        .push({
+          path,
+          handle: async (
+            req: Request,
+            res: Response,
+            next: Next
+          ): Promise<any> => {
+            return middleware.dispatch(req, res, next);
+          },
+        });
     }, this);
 
     return this;
