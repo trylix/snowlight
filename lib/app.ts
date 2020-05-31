@@ -71,7 +71,7 @@ export class App {
       throw new Error("app.use() requires a middleware function");
     }
 
-    middlewares.forEach(function (this: App, middleware) {
+    middlewares.forEach(function (this: App, middleware: any) {
       if (!middleware?.dispatch) {
         return this.stack.push({
           path,

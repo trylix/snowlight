@@ -1,5 +1,5 @@
-import app from "./app.ts";
-import router from "./router.ts";
+import app from "./lib/app.ts";
+import router from "./lib/router.ts";
 
 function App() {
   return new app();
@@ -9,10 +9,10 @@ function Router() {
   return new router();
 }
 
-export * from "./pipeline.ts";
-export * from "./request.ts";
-export * from "./response.ts";
-export * from "./body_parser.ts";
+export * from "./lib/pipeline.ts";
+export * from "./lib/request.ts";
+export * from "./lib/response.ts";
+export * from "./lib/body_parser.ts";
 
 export {
   App as default,
