@@ -12,18 +12,18 @@ import Pipeline from "./pipeline.ts";
 import { parser_params } from "./utils.ts";
 
 export class App {
-  private router?: Router;
+  private route?: Router;
 
-  getRouter() {
-    if (!this.router) {
-      this.router = new Router();
+  private router() {
+    if (!this.route) {
+      this.route = new Router();
     }
 
-    return this.router;
+    return this.route;
   }
 
-  listen(config: string | HTTPOptions, callback?: Function) {
-    const s = serve(config);
+  listen(addr: string | HTTPOptions, callback?: Function) {
+    const s = serve(addr);
 
     let self = this;
 
@@ -33,7 +33,7 @@ export class App {
         const response = new Response(httpRequest);
 
         const pipeline = new Pipeline(
-          self.getRouter().middlewares(),
+          self.router().middlewares(),
           request,
           response,
         );
@@ -58,30 +58,30 @@ export class App {
   }
 
   group(path: string, middlewares: Function | Function[], callback: Function) {
-    this.getRouter().group(path, middlewares, callback);
+    this.router().group(path, middlewares, callback);
   }
 
-  get(...params: (string | Function)[]): Router {
-    return this.getRouter().get(...params);
+  get(...params: any[]): Router {
+    return this.router().get(...params);
   }
 
-  post(...params: (string | Function)[]): Router {
-    return this.getRouter().post(...params);
+  post(...params: any[]): Router {
+    return this.router().post(...params);
   }
 
-  put(path: string, ...params: Function[]): Router {
-    return this.getRouter().put(...params);
+  put(...params: any[]): Router {
+    return this.router().put(...params);
   }
 
-  patch(path: string, ...params: Function[]): Router {
-    return this.getRouter().patch(...params);
+  patch(...params: any[]): Router {
+    return this.router().patch(...params);
   }
 
-  delete(path: string, ...params: Function[]): Router {
-    return this.getRouter().post(...params);
+  delete(...params: any[]): Router {
+    return this.router().delete(...params);
   }
 
-  use(...params: (string | Function | Object)[]) {
+  use(...params: any[]) {
     let path = "/";
     let offset = 0;
 
@@ -104,14 +104,14 @@ export class App {
 
     middlewares.forEach(function (this: App, middleware: any) {
       if (!middleware?.dispatch) {
-        return this.getRouter().middlewares().push({
+        return this.router().middlewares().push({
           path,
           params: parser_params(path),
           handle: middleware,
         });
       }
 
-      this.getRouter()
+      this.router()
         .middlewares()
         .push({
           path,

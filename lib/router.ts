@@ -14,27 +14,22 @@ export class Router {
   constructor(private extra?: { [name: string]: any }) {}
 
   private route(method: string, ...params: (string | Function)[]) {
-    let path = this.extra?.path ? this.extra.path : "/";
-    let offset = 0;
+    let path = this.extra?.path ? this.extra!.path : "/";
+    let offset = 1;
 
     if (!Array.isArray(params)) {
       throw new Error(
-        `Router.${method.toLowerCase}() requires a route path and a middleware function`,
+        `Router.${method.toLowerCase()}() requires a route path and a middleware function`
       );
     }
 
-    if (typeof params[0] !== "string" && !this.extra?.path) {
-      throw new Error(
-        `Router.${method.toLowerCase}() requires a route path`,
-      );
+    if (typeof params[0] !== "string" && this.extra?.path) {
+      throw new Error(`Router.${method.toLowerCase()}() requires a route path`);
     }
 
     if (typeof params[0] === "string") {
-      path = params[0];
+      path += params[0];
       offset = 2;
-    } else {
-      path = this.extra?.path;
-      offset = 1;
     }
 
     const handles = flatten(Array.prototype.slice.call(arguments, offset));
@@ -42,7 +37,7 @@ export class Router {
     handles.forEach(function (this: Router, handle) {
       if (typeof handle !== "function") {
         throw new Error(
-          `Router.${method.toLowerCase()}() requires a middleware function`,
+          `Router.${method.toLowerCase()}() requires a middleware function`
         );
       }
 
@@ -67,21 +62,22 @@ export class Router {
     return this.stack;
   }
 
-  group(path: string, middlewares: (Function | Function[]), callback: Function) {
+  group(path: string, middlewares: Function | Function[], callback: Function) {
     const router = new Router({
       path,
     });
-    
-    router.use(path, middlewares);
+
+    if (
+      (Array.isArray(middlewares) && middlewares.length > 0) ||
+      typeof middlewares === "function"
+    ) {
+      router.use(path, middlewares);
+    }
 
     this.stack.push({
       path,
       params: parser_params(path),
-      handle: async (
-        req: Request,
-        res: Response,
-        next: Next,
-      ): Promise<any> => {
+      handle: async (req: Request, res: Response, next: Next): Promise<any> => {
         return router.dispatch(req, res, next);
       },
     });
@@ -89,23 +85,23 @@ export class Router {
     callback(router);
   }
 
-  get(...params: (string | Function)[]): this {
+  get(...params: any[]): this {
     return this.route("GET", ...params);
   }
 
-  post(...params: (string | Function)[]): this {
+  post(...params: any[]): this {
     return this.route("POST", ...params);
   }
 
-  put(...params: (string | Function)[]): this {
+  put(...params: any[]): this {
     return this.route("PUT", ...params);
   }
 
-  patch(...params: (string | Function)[]): this {
+  patch(...params: any[]): this {
     return this.route("PATCH", ...params);
   }
 
-  delete(...params: (string | Function)[]): this {
+  delete(...params: any[]): this {
     return this.route("DELETE", ...params);
   }
 

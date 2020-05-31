@@ -27,10 +27,6 @@ export class Response {
     return this;
   }
 
-  getHeaders(): Headers {
-    return this.headers;
-  }
-
   status(statusCode: number): this {
     this.statusCode = statusCode;
     return this;

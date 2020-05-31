@@ -8,7 +8,6 @@ export const parser_params: Match = (pt: string) => {
   return (p) => {
     const path = p.split("/");
 
-
     if (pattern.length !== path.length) {
       return null;
     }
