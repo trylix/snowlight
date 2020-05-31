@@ -34,7 +34,7 @@ export class App {
         try {
           await pipeline.dispatch();
         } catch (err) {
-          console.log(err);
+          await pipeline.dispatch(err);
         }
 
         try {
