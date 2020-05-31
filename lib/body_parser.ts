@@ -14,7 +14,7 @@ export const static_content = (dir: string) => {
       return;
     }
 
-    const filePath = join(dir, req.url.slice(req.extra?.originalPath.length));
+    const filePath = join(dir, req.url.slice(req.offsetGet("original_path").length));
 
     try {
       await res.file(filePath);

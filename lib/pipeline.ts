@@ -67,7 +67,8 @@ export class Pipeline {
 
       if (params) {
         this.request.params = params;
-        this.request.extra.originalPath = middleware.path;
+        
+        this.request.offsetSet('original_path', middleware.path);
 
         return middleware.handle(this.request, this.response, next);
       }
@@ -75,7 +76,7 @@ export class Pipeline {
       !this.is_route(middleware) &&
       (middleware.path === "/" || this.request.url.startsWith(middleware.path))
     ) {
-      this.request.extra.originalPath = middleware.path;
+      this.request.offsetSet('original_path', middleware.path);
 
       return middleware.handle(this.request, this.response, next);
     }
@@ -94,7 +95,7 @@ export class Pipeline {
       return next();
     }
 
-    this.request.extra.originalPath = middleware.path;
+    this.request.offsetSet('original_path', middleware.path);
 
     return middleware.handle(err, this.request, this.response, next);
   }

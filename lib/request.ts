@@ -4,7 +4,8 @@ export type Params = { [key: string]: string };
 
 export type Query = { [key: string]: string | string[] };
 
-export type Method = "GET"
+export type Method =
+  | "GET"
   | "HEAD"
   | "POST"
   | "PUT"
@@ -13,15 +14,15 @@ export type Method = "GET"
   | "OPTIONS"
   | "TRACE"
   | "PATCH";
-  
+
 export class Request {
   path: string;
   search: string;
   query: Query;
   params!: Params;
-  extra: any = {};
 
   private data: any;
+  private offset: {[key: string]: any} = {};
 
   constructor(public raw: ServerRequest) {
     const url = new URL("http://a.b" + raw.url);
@@ -68,6 +69,18 @@ export class Request {
 
   set body(value: any) {
     this.data = value;
+  }
+
+  offsetExists(key: string): boolean {
+    return Boolean(this.offset[key]);
+  }
+
+  offsetGet(key: string): any {
+    return this.offset[key];
+  }
+
+  offsetSet(key: string, value: any) {
+    this.offset[key] = value;
   }
 
   header(key?: string, def?: string[]): string[] {
