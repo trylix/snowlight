@@ -1,11 +1,11 @@
-const { stat, open, readFile } = Deno;
-
 import {
-  Response as HttpResponse,
   ServerRequest,
-} from "https://deno.land/std/http/server.ts";
-import { extname as pathExtname } from "https://deno.land/std/path/mod.ts";
-import { lookup } from "https://deno.land/x/media_types/mod.ts";
+  Response as HttpResponse,
+  extname,
+  lookup,
+} from "../deps.ts";
+
+const { stat, open, readFile } = Deno;
 
 import { is_html } from "./utils.ts";
 
@@ -71,7 +71,7 @@ export class Response {
 
   async file(
     filePath: string,
-    transform?: (src: string) => string
+    transform?: (src: string) => string,
   ): Promise<void> {
     const notModified = false;
     if (notModified) {
@@ -79,8 +79,8 @@ export class Response {
       return;
     }
 
-    const extname: string = pathExtname(filePath);
-    const contentType: any = lookup(extname.slice(1)) || "";
+    const ext: string = extname(filePath);
+    const contentType: any = lookup(ext.slice(1)) || "";
     const fileInfo = await stat(filePath);
 
     if (!fileInfo.isFile) {

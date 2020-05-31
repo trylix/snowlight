@@ -1,28 +1,17 @@
-import { flatten } from "./modules/array_flatten.ts";
+import { Middleware, Route, Next, Method } from "./@types/snowlight.ts";
 
-import Pipeline, { Next } from "./pipeline.ts";
+import { flatten } from "./@modules/array_flatten.ts";
 
-import Request, { Method } from "./request.ts";
+import Request from "./request.ts";
 import Response from "./response.ts";
+import Pipeline from "./pipeline.ts";
 
 import { parser_params } from "./utils.ts";
-
-export interface Middleware {
-  path: string;
-  handle: Function;
-}
-
-export interface Route {
-  path: string;
-  methods: Method[];
-  params: (path: string) => any;
-  handle: Function;
-}
 
 export class Router {
   private stack: (Middleware | Route)[] = [];
 
-  constructor(private extra?: {[name: string]: any }) {}
+  constructor(private extra?: { [name: string]: any }) {}
 
   private route(method: string, ...params: (string | Function)[]) {
     let path = "/";
@@ -30,13 +19,13 @@ export class Router {
 
     if (!Array.isArray(params)) {
       throw new Error(
-        `Router.${method.toLowerCase}() requires a route path and a middleware function`
+        `Router.${method.toLowerCase}() requires a route path and a middleware function`,
       );
     }
 
     if (typeof params[0] !== "string" && !this.extra?.path) {
       throw new Error(
-        `Router.${method.toLowerCase}() requires a route path`
+        `Router.${method.toLowerCase}() requires a route path`,
       );
     }
 
@@ -52,7 +41,9 @@ export class Router {
 
     handles.forEach(function (this: Router, handle) {
       if (typeof handle !== "function") {
-        throw new Error(`Router.${method.toLowerCase()}() requires a middleware function`);
+        throw new Error(
+          `Router.${method.toLowerCase()}() requires a middleware function`,
+        );
       }
 
       this.stack.push({

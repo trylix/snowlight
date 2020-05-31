@@ -1,18 +1,18 @@
-import { serve, HTTPOptions } from "https://deno.land/std/http/server.ts";
+import { serve, HTTPOptions } from "../deps.ts";
 
-import { flatten } from "./modules/array_flatten.ts";
+import { Next } from "./@types/snowlight.ts";
 
-import Pipeline, { Next } from "./pipeline.ts";
+import { flatten } from "./@modules/array_flatten.ts";
 
-import Router, { Middleware } from "./router.ts";
-
+import Router from "./router.ts";
 import Request from "./request.ts";
 import Response from "./response.ts";
+import Pipeline from "./pipeline.ts";
 
 export class App {
   private router?: Router;
 
-  private getRouter() {
+  getRouter() {
     if (!this.router) {
       this.router = new Router();
     }
@@ -33,7 +33,7 @@ export class App {
         const pipeline = new Pipeline(
           self.getRouter().middlewares(),
           request,
-          response
+          response,
         );
 
         try {
@@ -115,7 +115,7 @@ export class App {
           handle: async (
             req: Request,
             res: Response,
-            next: Next
+            next: Next,
           ): Promise<any> => {
             return middleware.dispatch(req, res, next);
           },

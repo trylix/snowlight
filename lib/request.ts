@@ -1,19 +1,6 @@
-import { ServerRequest } from "https://deno.land/std/http/server.ts";
+import { ServerRequest } from "../deps.ts";
 
-export type Params = { [key: string]: string };
-
-export type Query = { [key: string]: string | string[] };
-
-export type Method =
-  | "GET"
-  | "HEAD"
-  | "POST"
-  | "PUT"
-  | "DELETE"
-  | "CONNECT"
-  | "OPTIONS"
-  | "TRACE"
-  | "PATCH";
+import { Query, Params, Method } from "./@types/snowlight.ts";
 
 export class Request {
   path: string;
@@ -22,7 +9,7 @@ export class Request {
   params!: Params;
 
   private data: any;
-  private offset: {[key: string]: any} = {};
+  private offset: { [key: string]: any } = {};
 
   constructor(public raw: ServerRequest) {
     const url = new URL("http://a.b" + raw.url);
@@ -30,8 +17,7 @@ export class Request {
     this.path = url.pathname;
     this.search = url.search;
 
-    const hasBody =
-      raw.headers.has("Content-Length") &&
+    const hasBody = raw.headers.has("Content-Length") &&
       raw.headers.get("Content-Length") !== "0";
 
     this.data = hasBody ? raw.body : new Uint8Array();

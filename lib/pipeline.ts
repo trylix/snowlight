@@ -1,9 +1,7 @@
-import { Middleware, Route } from "./router.ts";
+import { Middleware, Route, Next } from "./@types/snowlight.ts";
 
 import Request from "./request.ts";
 import Response from "./response.ts";
-
-export type Next = (err?: any) => Promise<void>;
 
 export class Pipeline {
   private finished: boolean;
@@ -11,7 +9,7 @@ export class Pipeline {
   constructor(
     private stack: (Middleware | Route)[],
     private request: Request,
-    private response: Response
+    private response: Response,
   ) {
     this.finished = false;
   }
@@ -67,8 +65,8 @@ export class Pipeline {
 
       if (params) {
         this.request.params = params;
-        
-        this.request.offsetSet('original_path', middleware.path);
+
+        this.request.offsetSet("original_path", middleware.path);
 
         return middleware.handle(this.request, this.response, next);
       }
@@ -76,7 +74,7 @@ export class Pipeline {
       !this.is_route(middleware) &&
       (middleware.path === "/" || this.request.url.startsWith(middleware.path))
     ) {
-      this.request.offsetSet('original_path', middleware.path);
+      this.request.offsetSet("original_path", middleware.path);
 
       return middleware.handle(this.request, this.response, next);
     }
@@ -87,7 +85,7 @@ export class Pipeline {
   private async handle_error(
     iterator: number,
     err: any,
-    next: Next
+    next: Next,
   ): Promise<any> {
     const middleware = this.stack[iterator];
 
@@ -95,7 +93,7 @@ export class Pipeline {
       return next();
     }
 
-    this.request.offsetSet('original_path', middleware.path);
+    this.request.offsetSet("original_path", middleware.path);
 
     return middleware.handle(err, this.request, this.response, next);
   }

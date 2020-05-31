@@ -1,9 +1,9 @@
-import { join } from "https://deno.land/std/path/mod.ts";
+import { join } from "../deps.ts";
+
+import { Next } from "./@types/snowlight.ts";
 
 import Request from "./request.ts";
 import Response from "./response.ts";
-
-import { Next } from "./pipeline.ts";
 
 export const static_content = (dir: string) => {
   return async (req: Request, res: Response, next: Next) => {
@@ -14,7 +14,10 @@ export const static_content = (dir: string) => {
       return;
     }
 
-    const filePath = join(dir, req.url.slice(req.offsetGet("original_path").length));
+    const filePath = join(
+      dir,
+      req.url.slice(req.offsetGet("original_path").length),
+    );
 
     try {
       await res.file(filePath);
@@ -34,7 +37,7 @@ export const json = () => {
 
         req.body = JSON.parse(bodyText);
       } catch (err) {
-        return next(err)
+        return next(err);
       }
     }
 
@@ -47,7 +50,7 @@ export const urlencoded = () => {
     if (req.isForm()) {
       try {
         const form = new URLSearchParams(
-          new TextDecoder().decode(req.body)
+          new TextDecoder().decode(req.body),
         );
 
         const data: any = {};

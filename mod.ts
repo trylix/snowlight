@@ -1,15 +1,25 @@
-import app from "./lib/app.ts";
+import App from "./lib/app.ts";
+import Route from "./lib/router.ts";
+import * as bodyparser from "./lib/bodyparser.ts";
 
-function App() {
-  return new app();
+let app: App;
+
+export default function createApplication() {
+  app = new App();
+
+  return Object.assign(app, bodyparser);
+}
+
+export function Router() {
+  return app.getRouter();
 }
 
 export * from "./lib/pipeline.ts";
 export * from "./lib/request.ts";
 export * from "./lib/response.ts";
-export * from "./lib/body_parser.ts";
-export * from "./lib/router.ts";
+
+export * from "./lib/@types/snowlight.ts";
 
 export {
-  App as default,
+  Route,
 };
