@@ -33,11 +33,7 @@ export class Pipeline {
           this.finished = true;
 
           if (err) {
-            return this.response.status(500).json({
-              name: err.name,
-              message: err.message,
-              stack: err.stack,
-            });
+            return this.response.sendStatus(500);
           } else {
             return this.response.sendStatus(404);
           }
@@ -95,8 +91,8 @@ export class Pipeline {
   ): Promise<any> {
     const middleware = this.stack[iterator];
 
-    if (middleware.handle.length < 4 && !this.is_route(middleware)) {
-      return next();
+    if (middleware.handle.length < 4) {
+      return next(err);
     }
 
     this.request.offsetSet("original_path", middleware.path);

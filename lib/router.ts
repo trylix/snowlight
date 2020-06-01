@@ -28,7 +28,7 @@ export class Router {
     }
 
     if (typeof params[0] === "string") {
-      path += params[0];
+      path = this.extra?.path ? path + params[0] : params[0];
       offset = 2;
     }
 
@@ -115,7 +115,7 @@ export class Router {
       params.length !== 0
     ) {
       if (typeof params[0] === "string") {
-        path = params[0];
+        path = this.extra?.path ? path + params[0] : params[0];
         offset = 1;
       }
     }
