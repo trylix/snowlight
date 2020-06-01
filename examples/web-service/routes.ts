@@ -13,7 +13,7 @@ routes.post("/projects", ProjectController.store);
 
 routes.group("/projects/:id", projectExistsMiddleware, (route: Route) => {
   route.put(ProjectController.update);
-  route.delete(ProjectController.delete)
+  route.delete(ProjectController.delete);
 });
 
 export default routes;

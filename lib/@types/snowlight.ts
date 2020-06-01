@@ -29,12 +29,12 @@ export interface Route {
 }
 
 export interface StaticOptions {
-  index?: string,
-  fallthrough?: boolean,
-  redirect?: boolean,
-  lastModified?: boolean,
-  immutable?: boolean,
-  maxAge?: number,
+  index?: string;
+  fallthrough?: boolean;
+  redirect?: boolean;
+  lastModified?: boolean;
+  immutable?: boolean;
+  maxAge?: number;
 }
 
 export const defaultOptions: StaticOptions = {
@@ -44,4 +44,4 @@ export const defaultOptions: StaticOptions = {
   lastModified: true,
   immutable: false,
   maxAge: 0,
-}
+};

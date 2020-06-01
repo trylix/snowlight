@@ -22,18 +22,26 @@ export class App {
     return this.route;
   }
 
-  listen(addr: string | HTTPOptions, callback?: Function) {
+  listen(addr: string | HTTPOptions, callback?: Function): void;
+  listen(
+    addr: string | HTTPOptions,
+    signal: AbortSignal,
+    callback?: Function,
+  ): void;
+  listen(
+    addr: string | HTTPOptions,
+    optionOne?: (AbortSignal | Function),
+    optionTwo?: Function,
+  ): void {
     const s = serve(addr);
 
-    let self = this;
-
-    async function handle() {
+    const handle = async (app: this) => {
       for await (const httpRequest of s) {
         const request = new Request(httpRequest);
         const response = new Response(httpRequest);
 
         const pipeline = new Pipeline(
-          self.router().middlewares(),
+          app.router().middlewares(),
           request,
           response,
         );
@@ -50,11 +58,21 @@ export class App {
           response.close();
         }
       }
+    };
+
+    handle(this);
+
+    if (optionOne && typeof optionOne === "object") {
+      optionOne.addEventListener("abort", () => {
+        s.close();
+      });
     }
 
-    handle();
-
-    callback?.();
+    if (optionOne && typeof optionOne === "function") {
+      optionOne();
+    } else {
+      optionTwo?.();
+    }
   }
 
   group(path: string, middlewares: Function | Function[], callback: Function) {
@@ -104,11 +122,13 @@ export class App {
 
     middlewares.forEach(function (this: App, middleware: any) {
       if (!middleware?.dispatch) {
-        return this.router().middlewares().push({
-          path,
-          params: parser_params(path),
-          handle: middleware,
-        });
+        return this.router()
+          .middlewares()
+          .push({
+            path,
+            params: parser_params(path),
+            handle: middleware,
+          });
       }
 
       this.router()

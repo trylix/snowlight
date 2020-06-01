@@ -22,14 +22,14 @@ export const static_content = (dir: string, options = defaultOptions) => {
     if (file === "" && options?.index) {
       file = options.index;
     }
-    
+
     const filePath = join(dir, file);
 
     try {
       const stats: Deno.FileInfo | null = await Deno.stat(filePath);
 
       res.headers.set("Content-Length", String(stats.size));
-    
+
       if (options?.lastModified) {
         res.headers.set("Last-Modified", stats!.mtime!.toUTCString());
       }

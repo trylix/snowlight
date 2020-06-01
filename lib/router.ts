@@ -19,7 +19,7 @@ export class Router {
 
     if (!Array.isArray(params)) {
       throw new Error(
-        `Router.${method.toLowerCase()}() requires a route path and a middleware function`
+        `Router.${method.toLowerCase()}() requires a route path and a middleware function`,
       );
     }
 
@@ -37,7 +37,7 @@ export class Router {
     handles.forEach(function (this: Router, handle) {
       if (typeof handle !== "function") {
         throw new Error(
-          `Router.${method.toLowerCase()}() requires a middleware function`
+          `Router.${method.toLowerCase()}() requires a middleware function`,
         );
       }
 

@@ -9,7 +9,7 @@ export class Pipeline {
   constructor(
     private stack: (Middleware | Route)[],
     private request: Request,
-    private response: Response
+    private response: Response,
   ) {
     this.finished = false;
   }
@@ -47,6 +47,8 @@ export class Pipeline {
       return err
         ? this.handle_error(iterator, err, next)
         : this.handle_request(iterator, next);
+    } else {
+      return this.response.sendStatus(404);
     }
   }
 
@@ -74,7 +76,8 @@ export class Pipeline {
       const params = middleware.params(this.request.url);
 
       if (
-        (middleware.path === "/" || this.request.url.startsWith(middleware.path) || params)
+        (middleware.path === "/" ||
+          this.request.url.startsWith(middleware.path) || params)
       ) {
         this.request.offsetSet("original_path", middleware.path);
 
@@ -88,7 +91,7 @@ export class Pipeline {
   private async handle_error(
     iterator: number,
     err: any,
-    next: Next
+    next: Next,
   ): Promise<any> {
     const middleware = this.stack[iterator];
 
