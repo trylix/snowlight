@@ -1,6 +1,6 @@
 import { assert, assertEquals, assertStrictEq } from "../test_deps.ts";
 
-import snowlight, { Request, Response, Next } from "../mod.ts";
+import snowlight, { Request, Response, Next } from "./test_mod.ts";
 
 import App from "../lib/app.ts";
 
@@ -11,26 +11,14 @@ Deno.test("should be able create a Application", () => {
 });
 
 Deno.test("should be receive 404 status code without routes", async () => {
-  const controller = new AbortController();
-  const { signal } = controller;
-
   const app = snowlight();
 
-  app.listen(":3000", signal);
-
-  const { status } = await fetch("http://localhost:3000", {
-    method: "get",
-  });
+  const { status } = await app.test({ url: "/" });
 
   assertStrictEq(status, 404);
-
-  controller.abort();
 });
 
 Deno.test("should be able register middleware", async () => {
-  const controller = new AbortController();
-  const { signal } = controller;
-
   const app = snowlight();
 
   let calls = 0;
@@ -38,21 +26,14 @@ Deno.test("should be able register middleware", async () => {
     calls++;
   });
 
-  app.listen(":3000", signal);
-
-  await fetch("http://localhost:3000");
+  await app.test({ url: "/" });
 
   assertStrictEq(calls, 1);
-
-  controller.abort();
 });
 
 Deno.test(
   "should be not able execute next middleware without call next function",
   async () => {
-    const controller = new AbortController();
-    const { signal } = controller;
-
     const app = snowlight();
 
     let itsMeMario;
@@ -64,22 +45,15 @@ Deno.test(
       itsMeMario = true;
     });
 
-    app.listen(":3000", signal);
-
-    await fetch("http://localhost:3000");
+    await app.test({ url: "/" });
 
     assertStrictEq(itsMeMario, false);
-
-    controller.abort();
-  },
+  }
 );
 
 Deno.test(
   "should be able to run the next middleware when the next function is called",
   async () => {
-    const controller = new AbortController();
-    const { signal } = controller;
-
     const app = snowlight();
 
     let itsMeMario;
@@ -93,20 +67,13 @@ Deno.test(
       itsMeMario = true;
     });
 
-    app.listen(":3000", signal);
-
-    await fetch("http://localhost:3000");
+    await app.test({ url: "/" });
 
     assertStrictEq(itsMeMario, true);
-
-    controller.abort();
-  },
+  }
 );
 
 Deno.test("should be run the next middleware and then run", async () => {
-  const controller = new AbortController();
-  const { signal } = controller;
-
   const app = snowlight();
 
   const stack: number[] = [];
@@ -123,21 +90,14 @@ Deno.test("should be run the next middleware and then run", async () => {
     stack.push(4);
   });
 
-  app.listen(":3000", signal);
-
-  await fetch("http://localhost:3000");
+  await app.test({ url: "/" });
 
   assertEquals(stack, [1, 3, 2, 4]);
-
-  controller.abort();
 });
 
 Deno.test(
   "should be run the next middleware and wait finish, then run",
   async () => {
-    const controller = new AbortController();
-    const { signal } = controller;
-
     const app = snowlight();
 
     const stack: number[] = [];
@@ -154,20 +114,13 @@ Deno.test(
       stack.push(4);
     });
 
-    app.listen(":3000", signal);
-
-    await fetch("http://localhost:3000");
+    await app.test({ url: "/" });
 
     assertEquals(stack, [1, 3, 4, 2]);
-
-    controller.abort();
-  },
+  }
 );
 
 Deno.test("should be handling error if throw exceptions", async () => {
-  const controller = new AbortController();
-  const { signal } = controller;
-
   const app = snowlight();
 
   let receiveError = false;
@@ -179,43 +132,29 @@ Deno.test("should be handling error if throw exceptions", async () => {
     throw new Error();
   });
 
-  app.listen(":3000", signal);
-
-  await fetch("http://localhost:3000");
+  await app.test({ url: "/" });
 
   assertStrictEq(receiveError, true);
-
-  controller.abort();
 });
 
 Deno.test(
   "should be return status code 500 if there no exception middleware treatment",
   async () => {
-    const controller = new AbortController();
-    const { signal } = controller;
-
     const app = snowlight();
 
     app.get(async (req: Request, res: Response) => {
       throw new Error();
     });
 
-    app.listen(":3000", signal);
+    const response = await app.test({ url: "/" });
 
-    const { status } = await fetch("http://localhost:3000");
-
-    assertStrictEq(status, 500);
-
-    controller.abort();
-  },
+    assertStrictEq(response.status, 500);
+  }
 );
 
 Deno.test(
   "should be return status code 404 if the called route has a different method",
   async () => {
-    const controller = new AbortController();
-    const { signal } = controller;
-
     const app = snowlight();
 
     const fn = async (req: Request, res: Response) => {};
@@ -226,42 +165,35 @@ Deno.test(
     app.patch("/patch", fn);
     app.delete("/delete", fn);
 
-    app.listen(":3000", signal);
-
     const method = (method: string) => {
       return {
         method: method.toUpperCase(),
       };
     };
 
-    let response = await fetch("http://localhost:3000/post");
+    let response = await app.test({ url: "/post" });
 
     assertStrictEq(response.status, 404);
 
-    response = await fetch("http://localhost:3000/get", method("post"));
+    response = await app.test({ url: "/get", method: "post" });
 
     assertStrictEq(response.status, 404);
 
-    response = await fetch("http://localhost:3000/patch", method("put"));
+    response = await app.test({ url: "/patch", method: "put" });
 
     assertStrictEq(response.status, 404);
 
-    response = await fetch("http://localhost:3000/put", method("patch"));
+    response = await app.test({ url: "/put", method: "patch" });
 
     assertStrictEq(response.status, 404);
 
-    response = await fetch("http://localhost:3000/delete", method("get"));
+    response = await app.test({ url: "/delete", method: "post" });
 
     assertStrictEq(response.status, 404);
-
-    controller.abort();
-  },
+  }
 );
 
 Deno.test("should be able to receive expected body", async () => {
-  const controller = new AbortController();
-  const { signal } = controller;
-
   const app = snowlight();
 
   const expectedJson = {
@@ -278,46 +210,23 @@ Deno.test("should be able to receive expected body", async () => {
   app.put("/put", reqFn);
   app.delete("/delete", reqFn);
 
-  app.listen(":3000", signal);
+  let response = await app.test({ url: "/get" });
+  assertEquals(response.body, expectedJson);
 
-  const method = (method: string) => {
-    return {
-      method: method.toUpperCase(),
-    };
-  };
+  response = await app.test({ url: "/post", method: "post" });
+  assertEquals(response.body, expectedJson);
 
-  let response = await fetch("http://localhost:3000/get");
-  let body = await response.json();
+  response = await app.test({ url: "/patch", method: "patch" });
+  assertEquals(response.body, expectedJson);
 
-  assertEquals(body, expectedJson);
+  response = await app.test({ url: "/put", method: "put" });
+  assertEquals(response.body, expectedJson);
 
-  response = await fetch("http://localhost:3000/post", method("post"));
-  body = await response.json();
-
-  assertEquals(body, expectedJson);
-
-  response = await fetch("http://localhost:3000/patch", method("patch"));
-  body = await response.json();
-
-  assertEquals(body, expectedJson);
-
-  response = await fetch("http://localhost:3000/put", method("put"));
-  body = await response.json();
-
-  assertEquals(body, expectedJson);
-
-  response = await fetch("http://localhost:3000/delete", method("delete"));
-  body = await response.json();
-
-  assertEquals(body, expectedJson);
-
-  controller.abort();
+  response = await app.test({ url: "/delete", method: "delete" });
+  assertEquals(response.body, expectedJson);
 });
 
 Deno.test("should be able receive parameters", async () => {
-  const controller = new AbortController();
-  const { signal } = controller;
-
   const app = snowlight();
 
   app.post("/post/:number", async (req: Request, res: Response) => {
@@ -326,23 +235,11 @@ Deno.test("should be able receive parameters", async () => {
     });
   });
 
-  app.listen(":3000", signal);
-
-  const response = await fetch("http://localhost:3000/post/10", {
-    method: "POST",
-  });
-
-  const body = await response.json();
-
-  assertEquals(body, { message: "10" });
-
-  controller.abort();
+  const response = await app.test({ url: "/post/10", method: "post" });
+  assertEquals(response.body, { message: "10" });
 });
 
 Deno.test("should be able receive query parameters", async () => {
-  const controller = new AbortController();
-  const { signal } = controller;
-
   const app = snowlight();
 
   app.get("/search", async (req: Request, res: Response) => {
@@ -353,23 +250,11 @@ Deno.test("should be able receive query parameters", async () => {
     });
   });
 
-  app.listen(":3000", signal);
-
-  const response = await fetch("http://localhost:3000/search?user_id=10", {
-    method: "GET",
-  });
-
-  const body = await response.json();
-
-  assertEquals(body, { user_id: "10" });
-
-  controller.abort();
+  const response = await app.test({ url: "/search?user_id=10", method: "get" });
+  assertEquals(response.body, { user_id: "10" });
 });
 
 Deno.test("should be able parse body json content", async () => {
-  const controller = new AbortController();
-  const { signal } = controller;
-
   const app = snowlight();
 
   app.use(app.json());
@@ -378,30 +263,22 @@ Deno.test("should be able parse body json content", async () => {
     return res.json(req.body);
   });
 
-  app.listen(":3000", signal);
-
   const expectedJson = { name: "Yoda", email: "yoda@email.com" };
 
-  const response = await fetch("http://localhost:3000/register", {
-    method: "POST",
-    headers: {
+  const response = await app.test({
+    url: "/register",
+    method: "post",
+    headerValues: {
       Accept: "application/json",
       "Content-Type": "application/json",
     },
     body: JSON.stringify(expectedJson),
   });
 
-  const body = await response.json();
-
-  assertEquals(body, expectedJson);
-
-  controller.abort();
+  assertEquals(response.body, expectedJson);
 });
 
 Deno.test("should be able parse body text content", async () => {
-  const controller = new AbortController();
-  const { signal } = controller;
-
   const app = snowlight();
 
   app.use(app.text());
@@ -410,27 +287,20 @@ Deno.test("should be able parse body text content", async () => {
     return res.send(req.body);
   });
 
-  app.listen(":3000", signal);
-
-  const response = await fetch("http://localhost:3000/register", {
-    method: "POST",
-    headers: {
+  const expectedText = "Hello world";
+  const response = await app.test({
+    url: "/register",
+    method: "post",
+    headerValues: {
       "Content-Type": "text/plain",
     },
-    body: "Hello world",
+    body: expectedText,
   });
 
-  const body = await response.text();
-
-  assertEquals(body, "Hello world");
-
-  controller.abort();
+  assertEquals(response.body, expectedText);
 });
 
 Deno.test("should be able parse body form content", async () => {
-  const controller = new AbortController();
-  const { signal } = controller;
-
   const app = snowlight();
 
   app.use(app.urlencoded());
@@ -439,19 +309,16 @@ Deno.test("should be able parse body form content", async () => {
     return res.json(req.body);
   });
 
-  app.listen(":3000", signal);
-
-  const response = await fetch("http://localhost:3000/register", {
-    method: "POST",
-    headers: {
+  const response = await app.test({
+    url: "/register",
+    method: "post",
+    headerValues: {
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: "name=test&bio=I+am+batman",
   });
 
-  const body = await response.json();
+  assertEquals(response.body, { name: "test", bio: "I am batman" });
 
-  assertEquals(body, { "name": "test", "bio": "I am batman" });
-
-  controller.abort();
+  app.close();
 });
