@@ -1,4 +1,4 @@
-import { Middleware, Route, Next, Method } from "./@types/snowlight.ts";
+import { Middleware, Route, Next, Method } from "./types.ts";
 
 import { flatten } from "./@modules/array_flatten.ts";
 
@@ -20,12 +20,6 @@ export class Router {
     if (!Array.isArray(params)) {
       throw new TypeError(
         `Router.${method.toLowerCase()}() requires a route path and a middleware function`,
-      );
-    }
-
-    if (typeof params[0] !== "string" && this.extra?.path) {
-      throw new TypeError(
-        `Router.${method.toLowerCase()}() requires a route path`,
       );
     }
 

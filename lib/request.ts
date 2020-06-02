@@ -1,6 +1,6 @@
 import { ServerRequest } from "../deps.ts";
 
-import { Query, Params, Method } from "./@types/snowlight.ts";
+import { Query, Params, Method } from "./types.ts";
 
 import { mimeType } from "./utils.ts";
 

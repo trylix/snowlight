@@ -1,6 +1,6 @@
 import { join } from "../deps.ts";
 
-import { Next, defaultOptions } from "./@types/snowlight.ts";
+import { Next, defaultOptions } from "./types.ts";
 
 import Request from "./request.ts";
 import Response from "./response.ts";

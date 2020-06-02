@@ -1,6 +1,6 @@
 import { lookup } from "../deps.ts";
 
-import { Params } from "./@types/snowlight.ts";
+import { Params } from "./types.ts";
 
 export type Match = (pattern: string) => (path: string) => Params;
 

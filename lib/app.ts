@@ -1,20 +1,18 @@
-import { serve, HTTPOptions } from "../deps.ts";
-
-import { Next } from "./@types/snowlight.ts";
-
 import { flatten } from "./@modules/array_flatten.ts";
+
+import { Next } from "./types.ts";
 
 import Router from "./router.ts";
 import Request from "./request.ts";
 import Response from "./response.ts";
-import Pipeline from "./pipeline.ts";
 
 import { parser_params } from "./utils.ts";
 
-export class App {
-  private route?: Router;
+export default class App {
+  protected route?: Router;
+  protected controller: AbortController = new AbortController();
 
-  private router() {
+  protected router() {
     if (!this.route) {
       this.route = new Router();
     }
@@ -22,57 +20,8 @@ export class App {
     return this.route;
   }
 
-  listen(addr: number | string | HTTPOptions, callback?: Function): void;
-  listen(
-    addr: number | string | HTTPOptions,
-    signal: AbortSignal,
-    callback?: Function,
-  ): void;
-  listen(
-    addr: number | string | HTTPOptions,
-    optionOne?: (AbortSignal | Function),
-    optionTwo?: Function,
-  ): void {
-    const s = serve(typeof addr === "number" ? `:${addr}` : addr);
-
-    const handle = async (app: this) => {
-      for await (const httpRequest of s) {
-        const request = new Request(httpRequest);
-        const response = new Response(httpRequest);
-
-        const pipeline = new Pipeline(
-          app.router().middlewares(),
-          request,
-          response,
-        );
-
-        try {
-          await pipeline.dispatch();
-        } catch (err) {
-          await pipeline.dispatch(err);
-        }
-
-        try {
-          await httpRequest.respond(response.makeResponse());
-        } finally {
-          response.close();
-        }
-      }
-    };
-
-    handle(this);
-
-    if (optionOne && typeof optionOne === "object") {
-      optionOne.addEventListener("abort", () => {
-        s.close();
-      });
-    }
-
-    if (optionOne && typeof optionOne === "function") {
-      optionOne();
-    } else {
-      optionTwo?.();
-    }
+  close() {
+    this.controller.abort();
   }
 
   group(path: string, middlewares: Function | Function[], callback: Function) {
@@ -149,5 +98,3 @@ export class App {
     return this;
   }
 }
-
-export { App as default };

@@ -1,4 +1,4 @@
-import { Middleware, Route, Next } from "./@types/snowlight.ts";
+import { Middleware, Route, Next } from "./types.ts";
 
 import Request from "./request.ts";
 import Response from "./response.ts";
