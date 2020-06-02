@@ -228,36 +228,230 @@ Deno.test(
 
     app.listen(":3000", signal);
 
-    let response = await fetch("http://localhost:3000/post", {
-      method: "get",
-    });
+    const method = (method: string) => {
+      return {
+        method: method.toUpperCase(),
+      };
+    };
+
+    let response = await fetch("http://localhost:3000/post");
 
     assertStrictEq(response.status, 404);
 
-    response = await fetch("http://localhost:3000/get", {
-      method: "post",
-    });
+    response = await fetch("http://localhost:3000/get", method("post"));
 
     assertStrictEq(response.status, 404);
 
-    response = await fetch("http://localhost:3000/patch", {
-      method: "put",
-    });
+    response = await fetch("http://localhost:3000/patch", method("put"));
 
     assertStrictEq(response.status, 404);
 
-    response = await fetch("http://localhost:3000/put", {
-      method: "patch",
-    });
+    response = await fetch("http://localhost:3000/put", method("patch"));
 
     assertStrictEq(response.status, 404);
 
-    response = await fetch("http://localhost:3000/delete", {
-      method: "get",
-    });
+    response = await fetch("http://localhost:3000/delete", method("get"));
 
     assertStrictEq(response.status, 404);
 
     controller.abort();
   }
 );
+
+Deno.test("should be able to receive expected body", async () => {
+  const controller = new AbortController();
+  const { signal } = controller;
+
+  const app = snowlight();
+
+  const expectedJson = {
+    message: "Ok",
+  };
+
+  const reqFn = async (req: Request, res: Response) => {
+    return res.json(expectedJson);
+  };
+
+  app.get("/get", reqFn);
+  app.post("/post", reqFn);
+  app.patch("/patch", reqFn);
+  app.put("/put", reqFn);
+  app.delete("/delete", reqFn);
+
+  app.listen(":3000", signal);
+
+  const method = (method: string) => {
+    return {
+      method: method.toUpperCase(),
+    };
+  };
+
+  let response = await fetch("http://localhost:3000/get");
+  let body = await response.json();
+
+  assertEquals(body, expectedJson);
+
+  response = await fetch("http://localhost:3000/post", method("post"));
+  body = await response.json();
+
+  assertEquals(body, expectedJson);
+
+  response = await fetch("http://localhost:3000/patch", method("patch"));
+  body = await response.json();
+
+  assertEquals(body, expectedJson);
+
+  response = await fetch("http://localhost:3000/put", method("put"));
+  body = await response.json();
+
+  assertEquals(body, expectedJson);
+
+  response = await fetch("http://localhost:3000/delete", method("delete"));
+  body = await response.json();
+
+  assertEquals(body, expectedJson);
+
+  controller.abort();
+});
+
+Deno.test("should be able receive parameters", async () => {
+  const controller = new AbortController();
+  const { signal } = controller;
+
+  const app = snowlight();
+
+  app.post("/post/:number", async (req: Request, res: Response) => {
+    return res.json({
+      message: req.params.number,
+    });
+  });
+
+  app.listen(":3000", signal);
+
+  const response = await fetch("http://localhost:3000/post/10", {
+    method: "POST",
+  });
+
+  const body = await response.json();
+
+  assertEquals(body, { message: "10" });
+
+  controller.abort();
+});
+
+Deno.test("should be able receive query parameters", async () => {
+  const controller = new AbortController();
+  const { signal } = controller;
+
+  const app = snowlight();
+
+  app.get("/search", async (req: Request, res: Response) => {
+    const { user_id } = req.query;
+
+    return res.json({
+      user_id,
+    });
+  });
+
+  app.listen(":3000", signal);
+
+  const response = await fetch("http://localhost:3000/search?user_id=10", {
+    method: "GET",
+  });
+
+  const body = await response.json();
+
+  assertEquals(body, { user_id: "10" });
+
+  controller.abort();
+});
+
+Deno.test("should be able parse body json content", async () => {
+  const controller = new AbortController();
+  const { signal } = controller;
+
+  const app = snowlight();
+
+  app.use(app.json());
+
+  app.post("/register", async (req: Request, res: Response) => {
+    return res.json(req.body);
+  });
+
+  app.listen(":3000", signal);
+
+  const expectedJson = { name: "Yoda", email: "yoda@email.com" };
+
+  const response = await fetch("http://localhost:3000/register", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(expectedJson),
+  });
+
+  const body = await response.json();
+
+  assertEquals(body, expectedJson);
+
+  controller.abort();
+});
+
+Deno.test("should be able parse body text content", async () => {
+  const controller = new AbortController();
+  const { signal } = controller;
+
+  const app = snowlight();
+
+  app.use(app.text());
+
+  app.post("/register", async (req: Request, res: Response) => {
+    return res.send(req.body);
+  });
+
+  app.listen(":3000", signal);
+
+  const response = await fetch("http://localhost:3000/register", {
+    method: "POST",
+    headers: {
+      "Content-Type": "text/plain",
+    },
+    body: "Hello world",
+  });
+
+  const body = await response.text();
+
+  assertEquals(body, "Hello world");
+
+  controller.abort();
+});
+
+Deno.test("should be able parse body form content", async () => {
+  const controller = new AbortController();
+  const { signal } = controller;
+
+  const app = snowlight();
+
+  app.use(app.urlencoded());
+
+  app.post("/register", async (req: Request, res: Response) => {
+    return res.json(req.body);
+  });
+
+  app.listen(":3000", signal);
+
+  const response = await fetch("http://localhost:3000/register", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: "name=test&bio=I+am+batman",
+  });
+
+  const body = await response.json();
+
+  assertEquals(body, { "name": "test", "bio": "I am batman"});
+
+  controller.abort();
+});
