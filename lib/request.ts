@@ -19,8 +19,7 @@ export class Request {
     this.path = url.pathname;
     this.search = url.search;
 
-    const hasBody =
-      raw.headers.has("Content-Length") &&
+    const hasBody = raw.headers.has("Content-Length") &&
       raw.headers.get("Content-Length") !== "0";
 
     this.data = hasBody ? raw.body : new Uint8Array();
@@ -119,7 +118,7 @@ export class Request {
   }
 
   isForm(): boolean {
-    const [ header ] = this.header("Content-Type");
+    const [header] = this.header("Content-Type");
 
     const { type, subtype, suffix } = mimeType(header);
 
@@ -127,7 +126,7 @@ export class Request {
   }
 
   isJson(): boolean {
-    const [ header ] = this.header("Content-Type");
+    const [header] = this.header("Content-Type");
 
     const { type, subtype, suffix } = mimeType(header);
 
@@ -135,7 +134,7 @@ export class Request {
   }
 
   isText(): boolean {
-    const [ header ] = this.header("Content-Type");
+    const [header] = this.header("Content-Type");
 
     const { type } = mimeType(header);
 

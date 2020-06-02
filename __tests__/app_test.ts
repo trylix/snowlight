@@ -71,7 +71,7 @@ Deno.test(
     assertStrictEq(itsMeMario, false);
 
     controller.abort();
-  }
+  },
 );
 
 Deno.test(
@@ -100,7 +100,7 @@ Deno.test(
     assertStrictEq(itsMeMario, true);
 
     controller.abort();
-  }
+  },
 );
 
 Deno.test("should be run the next middleware and then run", async () => {
@@ -161,7 +161,7 @@ Deno.test(
     assertEquals(stack, [1, 3, 4, 2]);
 
     controller.abort();
-  }
+  },
 );
 
 Deno.test("should be handling error if throw exceptions", async () => {
@@ -207,7 +207,7 @@ Deno.test(
     assertStrictEq(status, 500);
 
     controller.abort();
-  }
+  },
 );
 
 Deno.test(
@@ -255,7 +255,7 @@ Deno.test(
     assertStrictEq(response.status, 404);
 
     controller.abort();
-  }
+  },
 );
 
 Deno.test("should be able to receive expected body", async () => {
@@ -451,7 +451,7 @@ Deno.test("should be able parse body form content", async () => {
 
   const body = await response.json();
 
-  assertEquals(body, { "name": "test", "bio": "I am batman"});
+  assertEquals(body, { "name": "test", "bio": "I am batman" });
 
   controller.abort();
 });

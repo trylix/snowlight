@@ -36,8 +36,11 @@ export function is_html(value: string): boolean {
   return /^\s*<(?:!DOCTYPE|html|body)/i.test(value);
 }
 
-export function mimeType(contentType: string): { type: string, subtype: string, suffix?: string } {
-  const regexp = /^ *([A-Za-z0-9][A-Za-z0-9!#$&^_-]{0,126})\/([A-Za-z0-9][A-Za-z0-9!#$&^_.+-]{0,126}) *$/;
+export function mimeType(
+  contentType: string,
+): { type: string; subtype: string; suffix?: string } {
+  const regexp =
+    /^ *([A-Za-z0-9][A-Za-z0-9!#$&^_-]{0,126})\/([A-Za-z0-9][A-Za-z0-9!#$&^_.+-]{0,126}) *$/;
 
   if (contentType.includes(";")) {
     contentType = contentType.split(";")[0];
@@ -47,7 +50,9 @@ export function mimeType(contentType: string): { type: string, subtype: string, 
     contentType = `*/*${contentType}`;
   }
 
-  const finalType = contentType.includes("/") ? contentType : lookup(contentType);
+  const finalType = contentType.includes("/")
+    ? contentType
+    : lookup(contentType);
 
   const match = regexp.exec(finalType!.toLowerCase());
 

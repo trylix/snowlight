@@ -24,7 +24,9 @@ export class Router {
     }
 
     if (typeof params[0] !== "string" && this.extra?.path) {
-      throw new TypeError(`Router.${method.toLowerCase()}() requires a route path`);
+      throw new TypeError(
+        `Router.${method.toLowerCase()}() requires a route path`,
+      );
     }
 
     if (typeof params[0] === "string") {
