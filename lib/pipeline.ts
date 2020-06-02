@@ -18,7 +18,7 @@ export class Pipeline {
     return (object as Route).methods !== undefined;
   }
 
-  async dispatch(err?: Error) {
+  async dispatch(err?: any) {
     let iterator = 0;
 
     if (iterator < this.stack?.length) {
@@ -59,7 +59,7 @@ export class Pipeline {
       this.is_route(middleware) &&
       middleware.methods.includes(this.request.method)
     ) {
-      const params = middleware.params(this.request.url);
+      const params = middleware.params(this.request.path);
 
       if (params) {
         this.request.params = params;
@@ -69,11 +69,11 @@ export class Pipeline {
         return middleware.handle(this.request, this.response, next);
       }
     } else if (!this.is_route(middleware)) {
-      const params = middleware.params(this.request.url);
+      const params = middleware.params(this.request.path);
 
       if (
         (middleware.path === "/" ||
-          this.request.url.startsWith(middleware.path) || params)
+          this.request.path.startsWith(middleware.path) || params)
       ) {
         this.request.offsetSet("original_path", middleware.path);
 

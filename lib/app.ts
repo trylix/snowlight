@@ -117,7 +117,7 @@ export class App {
     const middlewares = flatten(Array.prototype.slice.call(arguments, offset));
 
     if (middlewares.length === 0) {
-      throw new Error("app.use() requires a middleware function");
+      throw new TypeError("app.use() requires a middleware function");
     }
 
     middlewares.forEach(function (this: App, middleware: any) {

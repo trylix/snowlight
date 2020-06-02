@@ -2,6 +2,8 @@ import { ServerRequest } from "../deps.ts";
 
 import { Query, Params, Method } from "./@types/snowlight.ts";
 
+import { mimeType } from "./utils.ts";
+
 export class Request {
   path: string;
   search: string;
@@ -17,7 +19,8 @@ export class Request {
     this.path = url.pathname;
     this.search = url.search;
 
-    const hasBody = raw.headers.has("Content-Length") &&
+    const hasBody =
+      raw.headers.has("Content-Length") &&
       raw.headers.get("Content-Length") !== "0";
 
     this.data = hasBody ? raw.body : new Uint8Array();
@@ -116,17 +119,27 @@ export class Request {
   }
 
   isForm(): boolean {
-    const [header] = this.header("Content-Type");
-    return header.includes("application/x-www-form-urlencoded");
+    const [ header ] = this.header("Content-Type");
+
+    const { type, subtype, suffix } = mimeType(header);
+
+    return type === "application" && (subtype === "x-www-form-urlencoded");
   }
 
   isJson(): boolean {
-    const [header] = this.header("Content-Type");
+    const [ header ] = this.header("Content-Type");
 
-    return (
-      header.includes("application/json") ||
-      header.includes("application/ld+json")
-    );
+    const { type, subtype, suffix } = mimeType(header);
+
+    return type === "application" && (subtype === "json" || suffix === "json");
+  }
+
+  isText(): boolean {
+    const [ header ] = this.header("Content-Type");
+
+    const { type } = mimeType(header);
+
+    return type === "text";
   }
 }
 

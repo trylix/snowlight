@@ -76,7 +76,11 @@ export const urlencoded = () => {
   return async (req: Request, res: Response, next: Next): Promise<any> => {
     if (req.isForm()) {
       try {
-        const form = new URLSearchParams(new TextDecoder().decode(req.body));
+        const rawBody = await Deno.readAll(req.body);
+
+        const bodyText = new TextDecoder().decode(rawBody);
+
+        const form = new URLSearchParams(bodyText.replace(/\+/g, " "));
 
         const data: any = {};
         for (const [name, value] of form.entries()) {
@@ -84,6 +88,24 @@ export const urlencoded = () => {
         }
 
         req.body = data;
+      } catch (err) {
+        return next(err);
+      }
+    }
+
+    return next();
+  };
+};
+
+export const text = () => {
+  return async (req: Request, res: Response, next: Next): Promise<any> => {
+    if (req.isText()) {
+      try {
+        const rawBody = await Deno.readAll(req.body);
+
+        const bodyText = new TextDecoder().decode(rawBody);
+
+        req.body = bodyText;
       } catch (err) {
         return next(err);
       }

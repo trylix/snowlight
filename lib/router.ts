@@ -18,13 +18,13 @@ export class Router {
     let offset = 1;
 
     if (!Array.isArray(params)) {
-      throw new Error(
+      throw new TypeError(
         `Router.${method.toLowerCase()}() requires a route path and a middleware function`,
       );
     }
 
     if (typeof params[0] !== "string" && this.extra?.path) {
-      throw new Error(`Router.${method.toLowerCase()}() requires a route path`);
+      throw new TypeError(`Router.${method.toLowerCase()}() requires a route path`);
     }
 
     if (typeof params[0] === "string") {
@@ -36,7 +36,7 @@ export class Router {
 
     handles.forEach(function (this: Router, handle) {
       if (typeof handle !== "function") {
-        throw new Error(
+        throw new TypeError(
           `Router.${method.toLowerCase()}() requires a middleware function`,
         );
       }
@@ -123,12 +123,12 @@ export class Router {
     const middlewares = flatten(Array.prototype.slice.call(arguments, offset));
 
     if (middlewares.length === 0) {
-      throw new Error("app.use() requires a middleware function");
+      throw new TypeError("app.use() requires a middleware function");
     }
 
     middlewares.forEach(function (this: Router, middleware) {
       if (typeof middleware !== "function") {
-        throw new Error("Router.use() requires a middleware function");
+        throw new TypeError("Router.use() requires a middleware function");
       }
 
       this.stack.push({
