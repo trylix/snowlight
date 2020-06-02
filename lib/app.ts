@@ -22,18 +22,18 @@ export class App {
     return this.route;
   }
 
-  listen(addr: string | HTTPOptions, callback?: Function): void;
+  listen(addr: number | string | HTTPOptions, callback?: Function): void;
   listen(
-    addr: string | HTTPOptions,
+    addr: number | string | HTTPOptions,
     signal: AbortSignal,
     callback?: Function,
   ): void;
   listen(
-    addr: string | HTTPOptions,
+    addr: number | string | HTTPOptions,
     optionOne?: (AbortSignal | Function),
     optionTwo?: Function,
   ): void {
-    const s = serve(addr);
+    const s = serve(typeof addr === "number" ? `:${addr}` : addr);
 
     const handle = async (app: this) => {
       for await (const httpRequest of s) {
