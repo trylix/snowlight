@@ -1,6 +1,6 @@
 import { assert, assertEquals, assertStrictEq } from "../test_deps.ts";
 
-import snowlight, { Request, Response, Next } from "./test_mod.ts";
+import snowlight, { Request, Response, Next, MockAgent } from "../mod.ts";
 
 import App from "../lib/app.ts";
 
@@ -13,7 +13,7 @@ Deno.test("should be able create a Application", () => {
 Deno.test("should be receive 404 status code without routes", async () => {
   const app = snowlight();
 
-  const { status } = await app.test({ url: "/" });
+  const { status } = await MockAgent(app).test({ url: "/" });
 
   assertStrictEq(status, 404);
 });
@@ -26,7 +26,7 @@ Deno.test("should be able register middleware", async () => {
     calls++;
   });
 
-  await app.test({ url: "/" });
+  await MockAgent(app).test({ url: "/" });
 
   assertStrictEq(calls, 1);
 });
@@ -45,7 +45,7 @@ Deno.test(
       itsMeMario = true;
     });
 
-    await app.test({ url: "/" });
+    await MockAgent(app).test({ url: "/" });
 
     assertStrictEq(itsMeMario, false);
   }
@@ -67,7 +67,7 @@ Deno.test(
       itsMeMario = true;
     });
 
-    await app.test({ url: "/" });
+    await MockAgent(app).test({ url: "/" });
 
     assertStrictEq(itsMeMario, true);
   }
@@ -90,7 +90,7 @@ Deno.test("should be run the next middleware and then run", async () => {
     stack.push(4);
   });
 
-  await app.test({ url: "/" });
+  await MockAgent(app).test({ url: "/" });
 
   assertEquals(stack, [1, 3, 2, 4]);
 });
@@ -114,7 +114,7 @@ Deno.test(
       stack.push(4);
     });
 
-    await app.test({ url: "/" });
+    await MockAgent(app).test({ url: "/" });
 
     assertEquals(stack, [1, 3, 4, 2]);
   }
@@ -132,7 +132,7 @@ Deno.test("should be handling error if throw exceptions", async () => {
     throw new Error();
   });
 
-  await app.test({ url: "/" });
+  await MockAgent(app).test({ url: "/" });
 
   assertStrictEq(receiveError, true);
 });
@@ -146,7 +146,7 @@ Deno.test(
       throw new Error();
     });
 
-    const response = await app.test({ url: "/" });
+    const response = await MockAgent(app).test({ url: "/" });
 
     assertStrictEq(response.status, 500);
   }
@@ -171,23 +171,23 @@ Deno.test(
       };
     };
 
-    let response = await app.test({ url: "/post" });
+    let response = await MockAgent(app).test({ url: "/post" });
 
     assertStrictEq(response.status, 404);
 
-    response = await app.test({ url: "/get", method: "post" });
+    response = await MockAgent(app).test({ url: "/get", method: "post" });
 
     assertStrictEq(response.status, 404);
 
-    response = await app.test({ url: "/patch", method: "put" });
+    response = await MockAgent(app).test({ url: "/patch", method: "put" });
 
     assertStrictEq(response.status, 404);
 
-    response = await app.test({ url: "/put", method: "patch" });
+    response = await MockAgent(app).test({ url: "/put", method: "patch" });
 
     assertStrictEq(response.status, 404);
 
-    response = await app.test({ url: "/delete", method: "post" });
+    response = await MockAgent(app).test({ url: "/delete", method: "post" });
 
     assertStrictEq(response.status, 404);
   }
@@ -210,19 +210,19 @@ Deno.test("should be able to receive expected body", async () => {
   app.put("/put", reqFn);
   app.delete("/delete", reqFn);
 
-  let response = await app.test({ url: "/get" });
+  let response = await MockAgent(app).test({ url: "/get" });
   assertEquals(response.body, expectedJson);
 
-  response = await app.test({ url: "/post", method: "post" });
+  response = await MockAgent(app).test({ url: "/post", method: "post" });
   assertEquals(response.body, expectedJson);
 
-  response = await app.test({ url: "/patch", method: "patch" });
+  response = await MockAgent(app).test({ url: "/patch", method: "patch" });
   assertEquals(response.body, expectedJson);
 
-  response = await app.test({ url: "/put", method: "put" });
+  response = await MockAgent(app).test({ url: "/put", method: "put" });
   assertEquals(response.body, expectedJson);
 
-  response = await app.test({ url: "/delete", method: "delete" });
+  response = await MockAgent(app).test({ url: "/delete", method: "delete" });
   assertEquals(response.body, expectedJson);
 });
 
@@ -235,7 +235,7 @@ Deno.test("should be able receive parameters", async () => {
     });
   });
 
-  const response = await app.test({ url: "/post/10", method: "post" });
+  const response = await MockAgent(app).test({ url: "/post/10", method: "post" });
   assertEquals(response.body, { message: "10" });
 });
 
@@ -250,7 +250,7 @@ Deno.test("should be able receive query parameters", async () => {
     });
   });
 
-  const response = await app.test({ url: "/search?user_id=10", method: "get" });
+  const response = await MockAgent(app).test({ url: "/search?user_id=10", method: "get" });
   assertEquals(response.body, { user_id: "10" });
 });
 
@@ -265,7 +265,7 @@ Deno.test("should be able parse body json content", async () => {
 
   const expectedJson = { name: "Yoda", email: "yoda@email.com" };
 
-  const response = await app.test({
+  const response = await MockAgent(app).test({
     url: "/register",
     method: "post",
     headerValues: {
@@ -288,7 +288,7 @@ Deno.test("should be able parse body text content", async () => {
   });
 
   const expectedText = "Hello world";
-  const response = await app.test({
+  const response = await MockAgent(app).test({
     url: "/register",
     method: "post",
     headerValues: {
@@ -309,7 +309,7 @@ Deno.test("should be able parse body form content", async () => {
     return res.json(req.body);
   });
 
-  const response = await app.test({
+  const response = await MockAgent(app).test({
     url: "/register",
     method: "post",
     headerValues: {

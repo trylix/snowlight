@@ -11,7 +11,7 @@ export class Response {
   body?: string | Uint8Array | Deno.Reader;
   resources: Deno.Closer[] = [];
 
-  constructor(private request?: Request) {}
+  constructor(private request: Request) {}
 
   header(key: string, value: string, replace: boolean = true): this {
     const header = this.headers.get(key);
@@ -58,12 +58,12 @@ export class Response {
 
   redirect(url: string | "back"): this {
     if (url === "back") {
-      url = this.request?.headers.get("Referrer") || "/";
+      url = this.request.headers.get("Referrer") || "/";
     }
 
     this.headers.set("Location", encodeURI(url));
 
-    if (this.request?.acceptsHtml()) {
+    if (this.request.acceptsHtml()) {
       this.headers.set("Content-Type", "text/html; charset=utf-8");
       this.body = `Redirecting to <a href="${url}">${url}</a>.`;
     } else {
@@ -100,7 +100,6 @@ export class Response {
       resource.close();
     }
 
-    this.request = undefined;
     this.body = undefined;
     this.resources = [];
   }

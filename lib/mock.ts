@@ -14,7 +14,9 @@ interface RequestOptions {
   proto?: string;
 }
 
-export default class Apptest extends App {
+export class Mock {
+  constructor(private app: App) {}
+
   async test(options: RequestOptions): Promise<HttpResponse> {
     const fakerRequest: any = this.makeRequest(options);
 
@@ -22,7 +24,7 @@ export default class Apptest extends App {
     const response = new Response(request);
 
     const pipeline = new Pipeline(
-      this.router().middlewares(),
+      this.app.router().middlewares(),
       request,
       response
     );
@@ -85,7 +87,7 @@ export default class Apptest extends App {
 
   private bodyReader(body: string): Deno.Reader {
     const encoder = new TextEncoder();
-    
+
     const buf = encoder.encode(body);
     let offset = 0;
 
@@ -102,3 +104,5 @@ export default class Apptest extends App {
     };
   }
 }
+
+export { Mock as default };
