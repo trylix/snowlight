@@ -18,27 +18,33 @@ export const static_content = (dir: string, options = defaultOptions) => {
       return res.sendStatus(405);
     }
 
-    let file = req.url.slice(req.offsetGet("original_path").length);
-    if (file === "" && options?.index) {
-      file = options.index;
+    let fileName = req.url.slice(req.offsetGet("original_path").length);
+    if (fileName === "" && options?.index) {
+      fileName = options.index;
     }
 
-    const filePath = join(dir, file);
+    const filePath = join(dir, fileName);
 
     try {
-      const stats: Deno.FileInfo | null = await Deno.stat(filePath);
+      const fileInfo: Deno.FileInfo | null = await Deno.stat(filePath);
 
-      res.headers.set("Content-Length", String(stats.size));
+      if (fileInfo.isDirectory && options?.redirect) {
+        return res.redirect(req.offsetGet("original_path"));
+      } else {
+        return res.sendStatus(403);
+      }
+
+      res.headers.set("Content-Length", String(fileInfo?.size));
 
       if (options?.lastModified) {
-        res.headers.set("Last-Modified", stats!.mtime!.toUTCString());
+        res.headers.set("Last-Modified", fileInfo?.mtime!.toUTCString());
       }
     } catch (err) {
       return next(err);
     }
 
     if (options?.maxAge) {
-      const cache = [`max-age=${(options.maxAge / 1000) | 0}`];
+      const cache = [`max-age=${(options.maxAge! / 1000) | 0}`];
       if (options.immutable) {
         cache.push("immutable");
       }
@@ -47,7 +53,7 @@ export const static_content = (dir: string, options = defaultOptions) => {
     }
 
     try {
-      return res.file(filePath);
+      return res.sendFile(filePath);
     } catch (err) {
       return next(err);
     }

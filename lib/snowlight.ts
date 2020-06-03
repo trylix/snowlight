@@ -21,7 +21,7 @@ export default class Snowlight extends App {
     const handle = async (app: this) => {
       for await (const httpRequest of s) {
         const request = new Request(httpRequest);
-        const response = new Response(httpRequest);
+        const response = new Response(request);
 
         const pipeline = new Pipeline(
           app.router().middlewares(),

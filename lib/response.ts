@@ -1,11 +1,6 @@
-import {
-  ServerRequest,
-  Response as HttpResponse,
-  extname,
-  lookup,
-} from "../deps.ts";
+import { Response as HttpResponse, extname, lookup } from "../deps.ts";
 
-const { stat, open, readFile } = Deno;
+import Request from "./request.ts";
 
 import { is_html } from "./utils.ts";
 
@@ -16,7 +11,7 @@ export class Response {
   body?: string | Uint8Array | Deno.Reader;
   resources: Deno.Closer[] = [];
 
-  constructor(private request?: ServerRequest) {}
+  constructor(private request?: Request) {}
 
   header(key: string, value: string, replace: boolean = true): this {
     const header = this.headers.get(key);
@@ -57,47 +52,47 @@ export class Response {
     return this;
   }
 
-  sendStatus(statusCode: number): this {
-    return this.send(undefined, statusCode);
-  }
-
   json(body: any): this {
     return this.send(body);
   }
 
-  async file(
-    filePath: string,
-    transform?: (src: string) => string,
-  ): Promise<void> {
-    const notModified = false;
-    if (notModified) {
-      this.statusCode = 304;
-      return;
+  redirect(url: string | "back"): this {
+    if (url === "back") {
+      url = this.request?.headers.get("Referrer") || "/";
     }
 
+    this.headers.set("Location", encodeURI(url));
+
+    if (this.request?.acceptsHtml()) {
+      this.headers.set("Content-Type", "text/html; charset=utf-8");
+      this.body = `Redirecting to <a href="${url}">${url}</a>.`;
+    } else {
+      this.headers.set("Content-Type", "text/plain; charset=utf-8");
+      this.body = `Redirecting to ${url}.`;
+    }
+
+    this.statusCode = 301;
+
+    return this.send();
+  }
+
+  sendStatus(statusCode: number): this {
+    this.statusCode = statusCode;
+    return this.send();
+  }
+
+  async sendFile(filePath: string): Promise<this> {
     const ext: string = extname(filePath);
     const contentType: any = lookup(ext.slice(1)) || "";
-    const fileInfo = await stat(filePath);
-
-    if (!fileInfo.isFile) {
-      return;
-    }
 
     this.headers.append("Content-Type", contentType);
 
-    if (transform) {
-      const bytes = await readFile(filePath);
+    const file = await Deno.open(filePath);
 
-      let str = new TextDecoder().decode(bytes);
-      str = transform(str);
+    this.resources.push(file);
+    this.body = file;
 
-      this.body = new TextEncoder().encode(str);
-    } else {
-      const file = await open(filePath);
-
-      this.resources.push(file);
-      this.body = file;
-    }
+    return this.send();
   }
 
   async close() {

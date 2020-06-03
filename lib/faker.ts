@@ -19,7 +19,7 @@ export default class Apptest extends App {
     const fakerRequest: any = this.makeRequest(options);
 
     const request = new Request(fakerRequest);
-    const response = new Response(fakerRequest);
+    const response = new Response(request);
 
     const pipeline = new Pipeline(
       this.router().middlewares(),
