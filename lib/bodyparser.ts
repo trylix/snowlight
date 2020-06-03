@@ -37,7 +37,7 @@ export const static_content = (dir: string, options = defaultOptions) => {
       res.headers.set("Content-Length", String(fileInfo?.size));
 
       if (options?.lastModified) {
-        res.headers.set("Last-Modified", fileInfo?.mtime!.toUTCString());
+        res.headers.set("Last-Modified", fileInfo!.mtime!.toUTCString());
       }
     } catch (err) {
       return next(err);
