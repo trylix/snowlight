@@ -1,3 +1,5 @@
+import { HTTPOptions } from "../deps.ts";
+
 export type Next = (err?: any) => Promise<void>;
 
 export type Params = { [key: string]: string };
@@ -35,6 +37,21 @@ export interface StaticOptions {
   lastModified?: boolean;
   immutable?: boolean;
   maxAge?: number;
+}
+
+export interface IRouter {
+  group(path: string, middlewares: Function | Function[], callback: Function): void,
+  get(...params: any[]): IRouter,
+  post(...params: any[]): IRouter,
+  put(...params: any[]): IRouter,
+  patch(...params: any[]): IRouter,
+  delete(...params: any[]): IRouter,
+  use(...params: any[]): IRouter,
+}
+
+export interface IApp extends IRouter {
+  listen(addr: number | string | HTTPOptions, callback?: Function): void,
+  close(): void,
 }
 
 export const defaultOptions: StaticOptions = {

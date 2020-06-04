@@ -52,7 +52,7 @@ const app = snowlight();
 
 ## Router()
 
-The  `Router()`  function creates a new router object which can be used with an `app` to enable routing based on the pathname of the request. It's a top-level function exported by the snowlight module.
+The  `Router()`  function creates a new router object which can be used with an `app` to enable routing based on the pathname of the request. It's exported by the snowlight module.
 
 ```typescript
 import snowlight, { Router } from  "https://deno.land/x/snowlight/mod.ts";
@@ -151,7 +151,7 @@ app.use(app.urlencoded());
 ```
 
 ### app.`METHOD`(path, callback `[, callback ...]`)
->### [routes](#-routes).`METHOD`(path, callback `[, callback ...]`)
+>### [routes](#routes).`METHOD`(path, callback `[, callback ...]`)
 
 Routes an HTTP request, where METHOD is the HTTP method of the request, such as GET, PUT, POST, and so on, in lowercase. Thus, the actual methods are  `app.get()`,  `app.post()`,  `app.put()`, and so on.
 
@@ -194,7 +194,7 @@ You can provide multiple callback functions that behave just like middleware.
 </tr></tbody></table>
 
 ### app.use(`[path,]` callback `[, callback...]`)
->### [routes](#-routes).use(`[path,]` callback `[, callback...]`)
+>### [routes](#routes).use(`[path,]` callback `[, callback...]`)
 
 Mounts the specified middleware function or functions at the specified path: the middleware function is executed when the base of the requested path matches `path`.
 
@@ -229,12 +229,12 @@ You can provide multiple callback functions that behave just like middleware.
 </tr></tbody></table>
 
 ### app.group(path, attributes`[]`, callback)
->### [routes](#-routes).group(path, attributes`[]`, callback)
+>### [routes](#routes).group(path, attributes`[]`, callback)
 
 Mounts a group with shared middleware function or functions at the specified path.
 
 ```typescript
-app.group("/route", [middlewareOne, middlewareTwo /*, ...*/], (route:  Route) => {
+app.group("/route", [middlewareOne, middlewareTwo /*, ...*/], (route: IRoute) => {
 	// "/route/:id" equivalent
 	route.put("/:id", controller.update);
 
@@ -244,7 +244,7 @@ app.group("/route", [middlewareOne, middlewareTwo /*, ...*/], (route:  Route) =>
 ```
 
 ```typescript
-app.group("/route/:id", middlewareOne, (route:  Route) => {
+app.group("/route/:id", middlewareOne, (route: IRoute) => {
 	// "/route/:id/user" equivalent
 	route.get("/user", middlewareTwo, middlewareThree, controller.index);
 	
@@ -286,8 +286,8 @@ You can provide multiple attributes functions that behave just like middleware f
 <td> <code>callback</code></td>
 <td>
 <p>
-It is a function that receives a parameter of type <code>Route</code>, responsible for manipulating the routes of the group.
-<code>Route</code> is exported from the snowlight module.
+It is a function that receives a parameter of type <code>IRoute</code>, responsible for manipulating the routes of the group.
+<code>IRoute</code> is exported from the snowlight module.
 </p>
 </td>
 <td><code>none</code></td>

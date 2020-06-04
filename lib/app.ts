@@ -2,18 +2,55 @@ import { serve, HTTPOptions, Response as HttpResponse } from "../deps.ts";
 
 import { flatten } from "./@modules/array_flatten.ts";
 
-import { Next, } from "./types.ts";
-
 import Pipeline from "./pipeline.ts";
 import Router from "./router.ts";
 import Request from "./request.ts";
 import Response from "./response.ts";
 
+import { Next, IApp, IRouter } from "./types.ts";
 import { parser_params } from "./utils.ts";
 
-export default class App {
+export default class App implements IApp {
   protected route?: Router;
   protected controller: AbortController = new AbortController();
+
+  listen(addr: number | string | HTTPOptions, callback?: Function): void {
+    const s = serve(typeof addr === "number" ? `:${addr}` : addr);
+    const { signal } = this.controller;
+
+    signal.addEventListener("abort", () => {
+      s.close();
+    });
+
+    const handle = async (app: this) => {
+      for await (const httpRequest of s) {
+        const request = new Request(httpRequest);
+        const response = new Response(request);
+
+        const pipeline = new Pipeline(
+          app.router().middlewares(),
+          request,
+          response,
+        );
+
+        try {
+          await pipeline.dispatch();
+        } catch (err) {
+          await pipeline.dispatch(err);
+        }
+
+        try {
+          await httpRequest.respond(response.makeResponse());
+        } finally {
+          response.close();
+        }
+      }
+    };
+
+    handle(this);
+
+    callback?.();
+  }
 
   router() {
     if (!this.route) {
@@ -31,23 +68,23 @@ export default class App {
     this.router().group(path, middlewares, callback);
   }
 
-  get(...params: any[]): Router {
+  get(...params: any[]): IRouter {
     return this.router().get(...params);
   }
 
-  post(...params: any[]): Router {
+  post(...params: any[]): IRouter {
     return this.router().post(...params);
   }
 
-  put(...params: any[]): Router {
+  put(...params: any[]): IRouter {
     return this.router().put(...params);
   }
 
-  patch(...params: any[]): Router {
+  patch(...params: any[]): IRouter {
     return this.router().patch(...params);
   }
 
-  delete(...params: any[]): Router {
+  delete(...params: any[]): IRouter {
     return this.router().delete(...params);
   }
 
@@ -99,43 +136,5 @@ export default class App {
     }, this);
 
     return this;
-  }
-
-  listen(addr: number | string | HTTPOptions, callback?: Function): void {
-    const s = serve(typeof addr === "number" ? `:${addr}` : addr);
-    const { signal } = this.controller;
-
-    signal.addEventListener("abort", () => {
-      s.close();
-    });
-
-    const handle = async (app: this) => {
-      for await (const httpRequest of s) {
-        const request = new Request(httpRequest);
-        const response = new Response(request);
-
-        const pipeline = new Pipeline(
-          app.router().middlewares(),
-          request,
-          response,
-        );
-
-        try {
-          await pipeline.dispatch();
-        } catch (err) {
-          await pipeline.dispatch(err);
-        }
-
-        try {
-          await httpRequest.respond(response.makeResponse());
-        } finally {
-          response.close();
-        }
-      }
-    };
-
-    handle(this);
-
-    callback?.();
   }
 }

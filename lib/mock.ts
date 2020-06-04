@@ -1,6 +1,5 @@
 import { ServerRequest, Response as HttpResponse } from "../deps.ts";
 
-import App from "./app.ts";
 import Pipeline from "./pipeline.ts";
 import Request from "./request.ts";
 import Response from "./response.ts";
@@ -15,7 +14,7 @@ interface RequestOptions {
 }
 
 export class Mock {
-  constructor(private app: App) {}
+  constructor(private app: any) {}
 
   async test(options: RequestOptions): Promise<HttpResponse> {
     const fakerRequest: any = this.makeRequest(options);

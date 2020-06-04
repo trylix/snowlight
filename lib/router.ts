@@ -1,4 +1,4 @@
-import { Middleware, Route, Next, Method } from "./types.ts";
+import { Middleware, Route, Next, Method, IRouter } from "./types.ts";
 
 import { flatten } from "./@modules/array_flatten.ts";
 
@@ -8,7 +8,7 @@ import Pipeline from "./pipeline.ts";
 
 import { parser_params } from "./utils.ts";
 
-export class Router {
+export class Router implements IRouter {
   private stack: (Middleware | Route)[] = [];
 
   constructor(private extra?: { [name: string]: any }) {}
