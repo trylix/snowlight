@@ -1,12 +1,9 @@
 import { join } from "../deps.ts";
 
-import { Next, defaultOptions } from "./types.ts";
-
-import Request from "./request.ts";
-import Response from "./response.ts";
+import { IRequest, IResponse, Next, defaultOptions } from "./types.ts";
 
 export const static_content = (dir: string, options = defaultOptions) => {
-  return async (req: Request, res: Response, next: Next) => {
+  return async (req: IRequest, res: IResponse, next: Next) => {
     if (req.method !== "GET" && req.method !== "HEAD") {
       if (options?.fallthrough) {
         return next();
@@ -61,7 +58,7 @@ export const static_content = (dir: string, options = defaultOptions) => {
 };
 
 export const json = () => {
-  return async (req: Request, res: Response, next: Next): Promise<any> => {
+  return async (req: IRequest, res: IResponse, next: Next): Promise<any> => {
     if (req.isJson()) {
       try {
         const rawBody = await Deno.readAll(req.body);
@@ -79,7 +76,7 @@ export const json = () => {
 };
 
 export const urlencoded = () => {
-  return async (req: Request, res: Response, next: Next): Promise<any> => {
+  return async (req: IRequest, res: IResponse, next: Next): Promise<any> => {
     if (req.isForm()) {
       try {
         const rawBody = await Deno.readAll(req.body);
@@ -104,7 +101,7 @@ export const urlencoded = () => {
 };
 
 export const text = () => {
-  return async (req: Request, res: Response, next: Next): Promise<any> => {
+  return async (req: IRequest, res: IResponse, next: Next): Promise<any> => {
     if (req.isText()) {
       try {
         const rawBody = await Deno.readAll(req.body);

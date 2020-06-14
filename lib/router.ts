@@ -137,6 +137,10 @@ export class Router implements IRouter {
 
     return this;
   }
+
+  error(...params: any[]): this {
+    return this.use(params);
+  }
 }
 
 export { Router as default };

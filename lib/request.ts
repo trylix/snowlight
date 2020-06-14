@@ -1,10 +1,8 @@
-import { ServerRequest } from "../deps.ts";
+import { ServerRequest, Accepts, typeofrequest } from "../deps.ts";
 
-import { Query, Params, Method } from "./types.ts";
+import { IRequest, Query, Params, Method } from "./types.ts";
 
-import { mimeType } from "./utils.ts";
-
-export class Request {
+export class Request implements IRequest {
   path: string;
   search: string;
   query: Query;
@@ -19,7 +17,8 @@ export class Request {
     this.path = url.pathname;
     this.search = url.search;
 
-    const hasBody = raw.headers.has("Content-Length") &&
+    const hasBody =
+      raw.headers.has("Content-Length") &&
       raw.headers.get("Content-Length") !== "0";
 
     this.data = hasBody ? raw.body : new Uint8Array();
@@ -94,51 +93,59 @@ export class Request {
   }
 
   acceptsHtml(): boolean {
-    return this.accept("text/html");
+    return Boolean(this.accepts("text/html"));
   }
 
   acceptsJson(): boolean {
-    return (
-      this.accept("application/json") || this.accept("application/ld+json")
-    );
+    return Boolean(this.accepts("application/json"));
   }
 
-  acceptsAnyContentType(): boolean {
-    return this.accept("*/*", true) || this.accept("*", true);
+  accepts(type: string): string[];
+  accepts(type: string[]): string[];
+  accepts(...type: string[]): string[];
+  accepts(): string[] {
+    const accept = new Accepts(this.headers);
+
+    return accept.types.apply(accept, arguments as any);
   }
 
-  accept(type: string, strict: boolean = false): boolean {
-    const [header] = this.header("Accept");
-    if (strict) {
-      return header.includes(type);
-    }
-    return (
-      header.includes(type) || header.includes("*/*") || header.includes("*")
-    );
+  acceptsCharsets(charset: string): string[];
+  acceptsCharsets(charset: string[]): string[];
+  acceptsCharsets(...charset: string[]): string[];
+  acceptsCharsets(): string[] {
+    const accept = new Accepts(this.headers);
+
+    return accept.charsets.apply(accept, arguments as any);
+  }
+
+  acceptsEncodings(encoding: string): string[];
+  acceptsEncodings(encoding: string[]): string[];
+  acceptsEncodings(...encoding: string[]): string[];
+  acceptsEncodings(): string[] {
+    const accept = new Accepts(this.headers);
+
+    return accept.encodings.apply(accept, arguments as any);
+  }
+
+  acceptsLanguages(lang: string): string[];
+  acceptsLanguages(lang: string[]): string[];
+  acceptsLanguages(...lang: string[]): string[];
+  acceptsLanguages(): string[] {
+    const accept = new Accepts(this.headers);
+
+    return accept.languages.apply(accept, arguments as any);
   }
 
   isForm(): boolean {
-    const [header] = this.header("Content-Type");
-
-    const { type, subtype, suffix } = mimeType(header);
-
-    return type === "application" && (subtype === "x-www-form-urlencoded");
+    return Boolean(typeofrequest(this.headers, ["application/x-www-form-urlencoded"]));
   }
 
   isJson(): boolean {
-    const [header] = this.header("Content-Type");
-
-    const { type, subtype, suffix } = mimeType(header);
-
-    return type === "application" && (subtype === "json" || suffix === "json");
+    return Boolean(typeofrequest(this.headers, ["json"]));
   }
 
   isText(): boolean {
-    const [header] = this.header("Content-Type");
-
-    const { type } = mimeType(header);
-
-    return type === "text";
+    return Boolean(typeofrequest(this.headers, ["text/*"]));
   }
 }
 

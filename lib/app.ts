@@ -88,7 +88,7 @@ export default class App implements IApp {
     return this.router().delete(...params);
   }
 
-  use(...params: any[]) {
+  use(...params: any[]): IRouter {
     let path = "/";
     let offset = 0;
 
@@ -136,5 +136,9 @@ export default class App implements IApp {
     }, this);
 
     return this;
+  }
+
+  error(...params: any[]): IRouter {
+    return this.use(params);
   }
 }

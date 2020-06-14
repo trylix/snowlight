@@ -20,7 +20,4 @@ export function MockAgent(application: any) {
   return new mock(application);
 }
 
-export * from "./lib/pipeline.ts";
-export * from "./lib/request.ts";
-export * from "./lib/response.ts";
 export * from "./lib/types.ts";

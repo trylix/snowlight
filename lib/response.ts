@@ -2,13 +2,14 @@ import { Response as HttpResponse, extname, lookup } from "../deps.ts";
 
 import Request from "./request.ts";
 
+import { IResponse } from "./types.ts";
 import { is_html } from "./utils.ts";
 
-export class Response {
+export class Response implements IResponse {
   private statusCode = 200;
 
-  headers = new Headers();
   body?: string | Uint8Array | Deno.Reader;
+  headers = new Headers();
   resources: Deno.Closer[] = [];
 
   constructor(private request: Request) {}
