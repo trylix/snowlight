@@ -19,11 +19,11 @@ Create the ``server.ts`` file:
 Copy and paste this code in the ``server.ts`` file:
 
 ```typescript
-import snowlight, { Request, Response } from "https://deno.land/x/snowlight/mod.ts";
+import snowlight from "https://deno.land/x/snowlight/mod.ts";
 
 const app = snowlight();
 
-app.get("/", async (req: Request, res: Response) => {
+app.get("/", async (req, res) => {
 	res.send('Hello world!');
 });
 
@@ -67,7 +67,7 @@ app.use(routes);
 
 ### app.json()
 
-Returns middleware that only parses JSON and only looks at requests where the Content-Type header matches the type option. 
+Returns middleware that only parses JSON and only looks at requests where the Content-Type header matches the type option.
 
 A new `body` object containing the parsed data is populated on the `request` object after the middleware (i.e. `req.body`), or an empty object (`{}`) if there was no body to parse, the `Content-Type` was not matched, or an error occurred.
 
@@ -81,7 +81,7 @@ app.use(app.json());
 
 ### app.static_content(root `[, options]`)
 
-It serves static files. The `root` argument specifies the root directory from which to serve static assets. The function determines the file to serve by combining `req.url` with the provided `root` directory. When a file is not found, instead of sending a 404 response, it instead calls `next()` to move on to the next middleware, allowing for stacking and fall-backs. 
+It serves static files. The `root` argument specifies the root directory from which to serve static assets. The function determines the file to serve by combining `req.url` with the provided `root` directory. When a file is not found, instead of sending a 404 response, it instead calls `next()` to move on to the next middleware, allowing for stacking and fall-backs.
 
 ```typescript
 app.use(app.static_content(\`${Deno.cwd()}/my-public-directory\`));
@@ -234,7 +234,7 @@ You can provide multiple callback functions that behave just like middleware.
 Mounts a group with shared middleware function or functions at the specified path.
 
 ```typescript
-app.group("/route", [middlewareOne, middlewareTwo /*, ...*/], (route: IRoute) => {
+app.group("/route", [middlewareOne, middlewareTwo /*, ...*/], (route) => {
 	// "/route/:id" equivalent
 	route.put("/:id", controller.update);
 
@@ -244,10 +244,10 @@ app.group("/route", [middlewareOne, middlewareTwo /*, ...*/], (route: IRoute) =>
 ```
 
 ```typescript
-app.group("/route/:id", middlewareOne, (route: IRoute) => {
+app.group("/route/:id", middlewareOne, (route) => {
 	// "/route/:id/user" equivalent
 	route.get("/user", middlewareTwo, middlewareThree, controller.index);
-	
+
 	// "/route/:id" equivalent
 	route.put(middlewareTwo, controller.update);
 
