@@ -1,4 +1,4 @@
-import { Router, Route } from "https://deno.land/x/snowlight/mod.ts";
+import { Router } from "https://deno.land/x/snowlight/mod.ts";
 
 import ProjectController from "./app/controllers/ProjectController.ts";
 import countRequestsMiddleware from "./app/middlewares/countRequests.ts";
@@ -11,7 +11,7 @@ routes.use(countRequestsMiddleware);
 routes.get("/projects", ProjectController.index);
 routes.post("/projects", ProjectController.store);
 
-routes.group("/projects/:id", projectExistsMiddleware, (route: Route) => {
+routes.group("/projects/:id", projectExistsMiddleware, (route) => {
   route.put(ProjectController.update);
   route.delete(ProjectController.delete);
 });

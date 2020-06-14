@@ -1,13 +1,13 @@
-import { v4, Request, Response } from "../../deps.ts";
+import { v4, IRequest, IResponse } from "../../deps.ts";
 
 import projects from "../projects.ts";
 
 class ProjectController {
-  index = async (req: Request, res: Response) => {
+  index = async (req: IRequest, res: IResponse) => {
     return res.json(projects);
   };
 
-  store = async (req: Request, res: Response) => {
+  store = async (req: IRequest, res: IResponse) => {
     const { title } = req.body;
 
     const project = {
@@ -20,7 +20,7 @@ class ProjectController {
     return res.status(201).json(project);
   };
 
-  update = async (req: Request, res: Response) => {
+  update = async (req: IRequest, res: IResponse) => {
     const { id } = req.params;
 
     const { title } = req.body;
@@ -36,7 +36,7 @@ class ProjectController {
     return res.sendStatus(404);
   };
 
-  delete = async (req: Request, res: Response) => {
+  delete = async (req: IRequest, res: IResponse) => {
     const { id } = req.params;
 
     const index = projects.findIndex((x) => x.id == id);
